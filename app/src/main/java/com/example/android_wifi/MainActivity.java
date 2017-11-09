@@ -36,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
 //    int time = 0;
     final ApManager apManager = new ApManager();
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
 
     private final int REQUEST_CODE_ASK_PERMISSIONS = 123;
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public void setHotSpotNameWrap(String name , Context context){
 
         int permissionCheck = ContextCompat.checkSelfPermission(

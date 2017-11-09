@@ -4,13 +4,10 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
-import android.net.wifi.WifiManager.LocalOnlyHotspotCallback;
-import android.os.Build;
 import android.os.Handler;
-import android.support.annotation.RequiresApi;
+import android.os.Message;
 import android.util.Log;
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import static android.content.ContentValues.TAG;
@@ -19,7 +16,6 @@ import static android.content.ContentValues.TAG;
  * Created by NOT on 10/25/17.
  */
 
-@RequiresApi(api = Build.VERSION_CODES.O)
 public class ApManager {
 
 
@@ -94,31 +90,39 @@ public class ApManager {
 //    @RequiresApi(api = Build.VERSION_CODES.O) c
     public boolean configApState(final Context context, final MainActivity activity) {
 
-//        final WifiManager wifimanager = (WifiManager) context.getSystemService(context.WIFI_SERVICE);
+        final WifiManager wifimanager = (WifiManager) context.getSystemService(context.WIFI_SERVICE);
+//        final Looper looper = new Looper();
+        final Handler handler = new Handler();
+
+        Message message = new Message();
+        WifiConfiguration wifiConfig = new WifiConfiguration();
+        wifiConfig.SSID = "Panupong";
+        message.obj = wifiConfig;
+        message.what = 1;
 //        wifimanager.startLocalOnlyHotspot(new LocalOnlyHotspotCallback() {
 //            @Override
 //            public void onStarted(WifiManager.LocalOnlyHotspotReservation reservation) {
 //                super.onStarted(reservation);
 //                Log.d(TAG, "Wifi Hotspot is on now");
 //                Log.d(TAG, isHotspotOn(context) ? "hotspot is on" : "hot spot is off");
-//                WifiConfiguration config = reservation.getWifiConfiguration();
-//                config.SSID = "1234";
-//                Method setConfigMethod = null;
-//                try {
-//                    setConfigMethod = wifimanager.getClass().getMethod("setWifiApConfiguration", WifiConfiguration.class);
-//                } catch (NoSuchMethodException e) {
-//                    e.printStackTrace();
-//                }
-//                try {
-//                    setConfigMethod.invoke(wifimanager, config);
-//                } catch (IllegalAccessException e) {
-//                    e.printStackTrace();
-//                } catch (InvocationTargetException e) {
-//                    e.printStackTrace();
-//                }
-//                config.SSID = "TEST";
-//                wifimanager.updateNetwork(config);
-//                activity.setHotSpotNameWrap("HELLO",context);
+////                WifiConfiguration config = reservation.getWifiConfiguration();
+////                config.SSID = "1234";
+////                Method setConfigMethod = null;
+////                try {
+////                    setConfigMethod = wifimanager.getClass().getMethod("setWifiApConfiguration", WifiConfiguration.class);
+////                } catch (NoSuchMethodException e) {
+////                    e.printStackTrace();
+////                }
+////                try {
+////                    setConfigMethod.invoke(wifimanager, config);
+////                } catch (IllegalAccessException e) {
+////                    e.printStackTrace();
+////                } catch (InvocationTargetException e) {
+////                    e.printStackTrace();
+////                }
+////                config.SSID = "TEST";
+////                wifimanager.updateNetwork(config);
+////                activity.setHotSpotNameWrap("HELLO",context);
 //            }
 //
 //            @Override
@@ -132,8 +136,9 @@ public class ApManager {
 //                super.onFailed(reason);
 //                Log.d(TAG, "onFailed: ");
 //            }
-//        } ,new Handler());
-//
+//        } ,handler);
+        handler.sendMessage(message);
+
 //
 //
 //
