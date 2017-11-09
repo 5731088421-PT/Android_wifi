@@ -33,129 +33,27 @@ public class ApManager {
         return false;
     }
 
-    public static void  startTethering(Context context) {
-        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        try {
-            Method [] ms = connectivityManager.getClass().getMethods();
-            Method targetM = null;
-            for (Method m : ms) {
-                if (m.getName() == "startTethering" && m.getParameterTypes().length == 3) {
-                    targetM = m;
-                }
-            }
-            if (targetM == null) {
-                throw new Exception("Exception");
-            }
-
-            Class[] cs = connectivityManager.getClass().getDeclaredClasses();
-            Class c = null;
-            for (Class cc: cs) {
-                if (cc.getName().equals("android.net.ConnectivityManager$OnStartTetheringCallback")) {
-                    c = cc;
-                }
-            }
-
-            if (c == null) {
-                throw new Exception("Exception");
-            }
-
-            Object o = Proxy.newProxyInstance(c.getClassLoader(), new Class[]{}, new InvocationHandler() {
-                @Override
-                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                    if (method.getName() == "onTetheringStarted" ){
-
-                        Log.d("apManager", "Start");
-                    }
-                    return null;
-                }
-            });
-
-            targetM.invoke(connectivityManager,0,true,o);
-//            m.invoke(connectivityManager,new Object[]{0,true, new Object() {
-//                public void onTetheringStarted() {
-//                    Log.d("apManager", "Start");
-//                }
-//                public void onTetheringFailed() {
-//                    Log.d("apManager", "Failed");
-//                }
-//            }});
-        }
-        catch (Exception e){
-            Log.d(TAG, "Exce");
-        }
-
-    }
-
     // toggle wifi hotspot on or off
-//    @RequiresApi(api = Build.VERSION_CODES.O) c
-    public boolean configApState(final Context context, final MainActivity activity) {
+    public boolean configApState(final Context context) {
 
-        final WifiManager wifimanager = (WifiManager) context.getSystemService(context.WIFI_SERVICE);
-//        final Looper looper = new Looper();
-        final Handler handler = new Handler();
+        final WifiManager wm = (WifiManager) context.getSystemService(context.WIFI_SERVICE);
+        WifiConfiguration wifiCon = new WifiConfiguration();
+        wifiCon.SSID = "ssid";
+        wifiCon.preSharedKey = "Sharedpassword";
+        wifiCon.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.SHARED);
+        wifiCon.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
+        wifiCon.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
+        wifiCon.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+        try
+        {
+            Method setWifiApMethod = wm.getClass().getMethod("setWifiApEnabled", WifiConfiguration.class, boolean.class);
+            boolean apstatus = (Boolean) setWifiApMethod.invoke(wm, wifiCon,true);
+        }
+        catch (Exception e)
+        {
+            Log.e(this.getClass().toString(), "", e);
+        }
 
-        Message message = new Message();
-        WifiConfiguration wifiConfig = new WifiConfiguration();
-        wifiConfig.SSID = "Panupong";
-        message.obj = wifiConfig;
-        message.what = 1;
-//        wifimanager.startLocalOnlyHotspot(new LocalOnlyHotspotCallback() {
-//            @Override
-//            public void onStarted(WifiManager.LocalOnlyHotspotReservation reservation) {
-//                super.onStarted(reservation);
-//                Log.d(TAG, "Wifi Hotspot is on now");
-//                Log.d(TAG, isHotspotOn(context) ? "hotspot is on" : "hot spot is off");
-////                WifiConfiguration config = reservation.getWifiConfiguration();
-////                config.SSID = "1234";
-////                Method setConfigMethod = null;
-////                try {
-////                    setConfigMethod = wifimanager.getClass().getMethod("setWifiApConfiguration", WifiConfiguration.class);
-////                } catch (NoSuchMethodException e) {
-////                    e.printStackTrace();
-////                }
-////                try {
-////                    setConfigMethod.invoke(wifimanager, config);
-////                } catch (IllegalAccessException e) {
-////                    e.printStackTrace();
-////                } catch (InvocationTargetException e) {
-////                    e.printStackTrace();
-////                }
-////                config.SSID = "TEST";
-////                wifimanager.updateNetwork(config);
-////                activity.setHotSpotNameWrap("HELLO",context);
-//            }
-//
-//            @Override
-//            public void onStopped() {
-//                super.onStopped();
-//                Log.d(TAG, "onStopped: ");
-//            }
-//
-//            @Override
-//            public void onFailed(int reason) {
-//                super.onFailed(reason);
-//                Log.d(TAG, "onFailed: ");
-//            }
-//        } ,handler);
-        handler.sendMessage(message);
-
-//
-//
-//
-//        WifiConfiguration wificonfiguration = null;
-//        try {
-//            // if WiFi is on, turn it off
-//            if(isApOn(context)) {
-//                wifimanager.setWifiEnabled(false);
-//            }
-//            Method method = wifimanager.getClass().getMethod("setWifiApEnabled", WifiConfiguration.class, boolean.class);
-//            method.invoke(wifimanager, wificonfiguration, !isApOn(context));
-//            return true;
-//        }
-//        catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
 
         return false;
     }

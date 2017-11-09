@@ -9,9 +9,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
+import android.nfc.Tag;
 import android.os.Build;
+import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -61,14 +64,26 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        };
 //        timer.scheduleAtFixedRate(timerTask,0,5000);
-
+        settingPermission();
 
 
         if (!apManager.isHotspotOn(context)){
-            apManager.configApState(context, this);
+            apManager.configApState(context);
+            Log.d(TAG,apManager.isHotspotOn(context) ? "Hotspot ON" : "Hotspot OFF");
         }
 
 //        Log.d("stat", printWifi());
+    }
+
+    public void settingPermission() {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.System.canWrite(getApplicationContext())) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + getPackageName()));
+                startActivityForResult(intent, 200);
+
+            }
+        }
     }
 
     private final int REQUEST_CODE_ASK_PERMISSIONS = 123;
