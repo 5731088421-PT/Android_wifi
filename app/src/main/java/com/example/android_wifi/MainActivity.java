@@ -34,56 +34,35 @@ import static android.content.ContentValues.TAG;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Context context;
-    private WifiManager wifiManager;
-//    Timer timer;
-//    TimerTask timerTask;
-//    int time = 0;
+    ApManager apManager;
+    WifiConfiguration wifiConfig;
+    Timer timer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        context = getApplicationContext();
-        wifiManager = (WifiManager) context.getSystemService(context.WIFI_SERVICE);
 
-//        ApManager.startTethering(context);
-//        wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-
-//        context.registerReceiver(new BroadcastReceiver() {
-//            @Override
-//            public void onReceive(Context context, Intent intent) {
-//
-//            }
-//        }, new IntentFilter());
-
-//        timer = new Timer();
-//        timerTask = new TimerTask() {
-//            @Override
-//            public void run() {
-//                Log.d("Timer", Integer.toString(time));
-//                time++;
-//            }
-//        };
-//        timer.scheduleAtFixedRate(timerTask,0,5000);
-        settingPermission();
-//        ApManager.scanAndConnect(context, wifiManager);
-
-//            ApManager.setHotspot(context, false);
-
-            ApManager.setHotspot(context, true);
-
-
+        apManager = new ApManager(this);
+        wifiConfig = new WifiConfiguration();
+        wifiConfig.SSID = "MANET";
+        wifiConfig.preSharedKey = "123456789";
+        wifiConfig.allowedAuthAlgorithms.set(0);
+        wifiConfig.allowedKeyManagement.set(4);
+        clientMode();
     }
 
-    public void settingPermission() {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!Settings.System.canWrite(getApplicationContext())) {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + getPackageName()));
-                startActivityForResult(intent, 200);
-
-            }
+    private void hotspotMode(){
+        apManager.showWritePermissionSettings(false);
+        if(apManager.isWifiApEnabled()){
+            apManager.setWifiApEnabled(null, false);
         }
+        apManager.setWifiApEnabled(wifiConfig, true);
     }
+
+    private void clientMode(){
+        apManager.connectToAp(wifiConfig);
+    }
+
 }
