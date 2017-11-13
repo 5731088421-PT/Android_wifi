@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.nfc.Tag;
@@ -25,6 +26,7 @@ import android.widget.Toast;
 
 import java.lang.reflect.Method;
 import java.sql.Time;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -32,19 +34,19 @@ import static android.content.ContentValues.TAG;
 
 public class MainActivity extends AppCompatActivity {
 
-    WifiManager wifiManager;
+    private Context context;
+    private WifiManager wifiManager;
 //    Timer timer;
 //    TimerTask timerTask;
-    Context context;
 //    int time = 0;
-    final ApManager apManager = new ApManager();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         context = getApplicationContext();
+        wifiManager = (WifiManager) context.getSystemService(context.WIFI_SERVICE);
+
 //        ApManager.startTethering(context);
 //        wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 
@@ -65,14 +67,13 @@ public class MainActivity extends AppCompatActivity {
 //        };
 //        timer.scheduleAtFixedRate(timerTask,0,5000);
         settingPermission();
+//        ApManager.scanAndConnect(context, wifiManager);
+
+//            ApManager.setHotspot(context, false);
+
+            ApManager.setHotspot(context, true);
 
 
-        if (!apManager.isHotspotOn(context)){
-            apManager.configApState(context);
-            Log.d(TAG,apManager.isHotspotOn(context) ? "Hotspot ON" : "Hotspot OFF");
-        }
-
-//        Log.d("stat", printWifi());
     }
 
     public void settingPermission() {
@@ -84,91 +85,5 @@ public class MainActivity extends AppCompatActivity {
 
             }
         }
-    }
-
-    private final int REQUEST_CODE_ASK_PERMISSIONS = 123;
-
-    public void setHotSpotNameWrap(String name , Context context){
-
-        int permissionCheck = ContextCompat.checkSelfPermission(
-                this, "android.permission.OVERRIDE_WIFI_CONFIG");
-        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    "android.permission.OVERRIDE_WIFI_CONFIG")) {
-                showExplanation("Permission Needed", "Rationale", "android.permission.OVERRIDE_WIFI_CONFIG", REQUEST_CODE_ASK_PERMISSIONS);
-            } else {
-                requestPermission("android.permission.OVERRIDE_WIFI_CONFIG", REQUEST_CODE_ASK_PERMISSIONS);
-            }
-        } else {
-            Toast.makeText(MainActivity.this, "Permission (already) Granted!", Toast.LENGTH_SHORT).show();
-            apManager.setHotspotName(name,context);
-        }
-
-
-
-
-//        int hasChangeConfigPermission = ContextCompat.checkSelfPermission(context,"android.permission.OVERRIDE_WIFI_CONFIG");
-//        if(hasChangeConfigPermission != PackageManager.PERMISSION_GRANTED){
-//            ActivityCompat.requestPermissions(
-//                    this
-//                    , new String[] {"android.permission.OVERRIDE_WIFI_CONFIG"},
-//                    REQUEST_CODE_ASK_PERMISSIONS);
-//            return;
-//        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_CODE_ASK_PERMISSIONS: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Log.d(TAG, "granttt");
-
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-
-                } else {
-                    Log.d(TAG, "denied");
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                }
-                return;
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
-    }
-
-    private void showExplanation(String title,
-                                 String message,
-                                 final String permission,
-                                 final int permissionRequestCode) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(title)
-                .setMessage(message)
-                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        requestPermission(permission, permissionRequestCode);
-                    }
-                });
-        builder.create().show();
-    }
-
-    private void requestPermission(String permissionName, int permissionRequestCode) {
-        ActivityCompat.requestPermissions(this,
-                new String[]{permissionName}, permissionRequestCode);
-    }
-
-    private String printWifi(){
-        if (wifiManager.isWifiEnabled()){
-            return "yes";
-        }
-        return "No";
-
     }
 }
