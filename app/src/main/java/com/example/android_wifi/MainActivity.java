@@ -24,6 +24,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.lang.reflect.Method;
@@ -42,12 +43,16 @@ public class MainActivity extends AppCompatActivity {
 
     Button clientButton;
     Button hotspotButton;
+    Button startClientButton;
+    Button startHotspotButton;
+    TextView statusText;
     Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        apManager = new ApManager(this);
         apManager.showWritePermissionSettings(false);
         context = getApplicationContext();
 
@@ -55,14 +60,17 @@ public class MainActivity extends AppCompatActivity {
         clientButton.setOnClickListener(buttonListenner);
         hotspotButton = (Button) findViewById(R.id.hotspotButton);
         hotspotButton.setOnClickListener(buttonListenner);
+        startClientButton = (Button) findViewById(R.id.startClientButton);
+        startClientButton.setOnClickListener(buttonListenner);
+        startHotspotButton = (Button) findViewById(R.id.startServerButton);
+        startHotspotButton.setOnClickListener(buttonListenner);
+        statusText = (TextView) findViewById(R.id.statustext);
 
-        apManager = new ApManager(this);
         wifiConfig = new WifiConfiguration();
         wifiConfig.SSID = "MANET";
         wifiConfig.preSharedKey = "123456789";
         wifiConfig.allowedAuthAlgorithms.set(0);
         wifiConfig.allowedKeyManagement.set(4);
-        clientMode();
     }
 
     private View.OnClickListener buttonListenner = new View.OnClickListener() {
@@ -70,11 +78,17 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View v) {
             if (v.getId() == R.id.clientButton){
                 clientMode();
-                Intent intent = new Intent(context, ClientActivity.class);
-                startActivity(intent);
+                statusText.setText("Client");
             }
             else if(v.getId() == R.id.hotspotButton){
                 hotspotMode();
+                statusText.setText("Server");
+            }
+            else if(v.getId() == R.id.startClientButton){
+                Intent intent = new Intent(context, ClientActivity.class);
+                startActivity(intent);
+            }
+            else if(v.getId() == R.id.startServerButton){
                 Intent intent = new Intent(context, ServerActivity.class);
                 startActivity(intent);
             }

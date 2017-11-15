@@ -110,16 +110,29 @@ public class ServerActivity extends AppCompatActivity {
 
     // GETS THE IP ADDRESS OF YOUR PHONE'S NETWORK
     private String getLocalIpAddress() {
+        String ip = "";
         try {
-            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
-                NetworkInterface intf = en.nextElement();
-                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-                    InetAddress inetAddress = enumIpAddr.nextElement();
-                    if (!inetAddress.isLoopbackAddress()) { return inetAddress.getHostAddress().toString(); }
+            Enumeration<NetworkInterface> enumNetworkInterfaces = NetworkInterface
+                    .getNetworkInterfaces();
+            while (enumNetworkInterfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = enumNetworkInterfaces
+                        .nextElement();
+                Enumeration<InetAddress> enumInetAddress = networkInterface
+                        .getInetAddresses();
+                while (enumInetAddress.hasMoreElements()) {
+                    InetAddress inetAddress = enumInetAddress
+                            .nextElement();
+
+                    if (inetAddress.isSiteLocalAddress()) {
+                        ip += inetAddress.getHostAddress();
+                        return ip;
+                    }
                 }
             }
-        } catch (SocketException ex) {
-            Log.e("ServerActivity", ex.toString());
+
+        } catch (SocketException e) {
+            e.printStackTrace();
+            ip += "Something Wrong! " + e.toString() + "\n";
         }
         return null;
     }
