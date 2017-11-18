@@ -33,7 +33,7 @@
 
         <LinearLayout
             android:id="@+id/linearLayout"
-            android:layout_width="387dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:gravity="center_vertical"
@@ -47,13 +47,16 @@
 
             <EditText
                 android:id="@+id/message_input"
+                android:imeActionId="@+id/send"
+                android:imeActionLabel="Send"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:imeOptions="actionSend"
                 android:inputType="text"
                 android:maxLines="1"
-                android:singleLine="true" />
+                android:singleLine="true"
+                tools:ignore="InvalidImeActionId" />
 
             <ImageButton
                 android:id="@+id/send_button"

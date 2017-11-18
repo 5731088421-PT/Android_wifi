@@ -38,8 +38,10 @@ import static android.content.ContentValues.TAG;
 public class MainActivity extends AppCompatActivity {
 
     ApManager apManager;
+    ChatManager chatManager;
     WifiConfiguration wifiConfig;
     Timer timer;
+
 
     Button clientButton;
     Button hotspotButton;
@@ -56,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
         apManager = new ApManager(this);
         apManager.showWritePermissionSettings(false);
         context = getApplicationContext();
+        chatManager = new ChatManager();
 
         clientButton = (Button) findViewById(R.id.clientButton);
         clientButton.setOnClickListener(buttonListenner);
@@ -81,21 +84,23 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View v) {
             if (v.getId() == R.id.clientButton){
                 clientMode();
-                statusText.setText("Client");
+                setStatus("This device is Client");
             }
             else if(v.getId() == R.id.hotspotButton){
                 hotspotMode();
-                statusText.setText("Server");
+                setStatus("This device is Server");
             }
             else if(v.getId() == R.id.startClientButton){
-                Intent intent = new Intent(context, ClientActivity.class);
-                startActivity(intent);
+//                Intent intent = new Intent(context, ClientActivity.class);
+//                startActivity(intent);
+                chatManager.startClient();
             }
             else if(v.getId() == R.id.startServerButton){
-                Intent intent = new Intent(context, ServerActivity.class);
-                startActivity(intent);
+//                Intent intent = new Intent(context, ServerActivity.class);
+//                startActivity(intent);
+                chatManager.startServer();
             }else if(v.getId() == R.id.chatButton){
-                Intent intent = new Intent(context,ChatActivity.class);
+                Intent intent = new Intent(context,LoginActivity.class);
                 startActivity(intent);
             }
         }
@@ -111,6 +116,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void clientMode(){
         apManager.connectToAp(wifiConfig);
+    }
+
+    public void setStatus(String text){
+        statusText.setText(text);
     }
 
 }
