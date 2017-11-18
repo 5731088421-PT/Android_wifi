@@ -33,6 +33,11 @@ public class ApManager {
     }
 
     public void connectToAp(WifiConfiguration config){
+
+        if(isWifiApEnabled()){
+            setWifiApEnabled(null, false);
+        }
+
         WifiConfiguration wifiConfiguration = new WifiConfiguration();
 
         wifiConfiguration.SSID = "\"" + config.SSID + "\"";

@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
     Button hotspotButton;
     Button startClientButton;
     Button startHotspotButton;
+    Button chatButton;
     TextView statusText;
     Context context;
 
@@ -64,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
         startClientButton.setOnClickListener(buttonListenner);
         startHotspotButton = (Button) findViewById(R.id.startServerButton);
         startHotspotButton.setOnClickListener(buttonListenner);
+        chatButton = (Button) findViewById(R.id.chatButton);
+        chatButton.setOnClickListener(buttonListenner);
         statusText = (TextView) findViewById(R.id.statustext);
 
         wifiConfig = new WifiConfiguration();
@@ -90,6 +93,9 @@ public class MainActivity extends AppCompatActivity {
             }
             else if(v.getId() == R.id.startServerButton){
                 Intent intent = new Intent(context, ServerActivity.class);
+                startActivity(intent);
+            }else if(v.getId() == R.id.chatButton){
+                Intent intent = new Intent(context,ChatActivity.class);
                 startActivity(intent);
             }
         }
