@@ -43,6 +43,10 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
         return mMessages.size();
     }
 
+    public void addNewDataOnTop(ChatMessage chatList) {
+        this.mMessages.add((mMessages.size() == 0 ? 0:mMessages.size()),chatList);
+        notifyDataSetChanged();
+    }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView userNameTextView;
@@ -56,4 +60,6 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
 
         }
     }
+
+
 }

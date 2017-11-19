@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     Button startClientButton;
     Button startHotspotButton;
     Button chatButton;
+    Button clearChatButton;
     TextView statusText;
     Context context;
 
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         apManager = new ApManager(this);
         apManager.showWritePermissionSettings(false);
         context = getApplicationContext();
-        chatManager = new ChatManager();
+        chatManager = new ChatManager(context);
 
         clientButton = (Button) findViewById(R.id.clientButton);
         clientButton.setOnClickListener(buttonListenner);
@@ -70,6 +71,8 @@ public class MainActivity extends AppCompatActivity {
         startHotspotButton.setOnClickListener(buttonListenner);
         chatButton = (Button) findViewById(R.id.chatButton);
         chatButton.setOnClickListener(buttonListenner);
+        clearChatButton = (Button) findViewById(R.id.clearChatButton);
+        clearChatButton.setOnClickListener(buttonListenner);
         statusText = (TextView) findViewById(R.id.statustext);
 
         wifiConfig = new WifiConfiguration();
@@ -101,8 +104,13 @@ public class MainActivity extends AppCompatActivity {
                 chatManager.startServer();
             }else if(v.getId() == R.id.chatButton){
                 Intent intent = new Intent(context,LoginActivity.class);
+
                 startActivity(intent);
+            }else if(v.getId() == R.id.clearChatButton){
+                MyDbHelper myDbHelper = new MyDbHelper(context);
+                myDbHelper.clearDB();
             }
+
         }
     };
 

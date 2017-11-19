@@ -39,7 +39,34 @@ public class MyDbHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void addMessage(ChatMessage chatMessage){
+    public boolean findMessage(ChatMessage message){
+
+        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
+        Cursor cursor = sqLiteDatabase.query
+                (TABLE_NAME, null, COL_SENDTIME+" =?", new String[]{message.timeStamp}, null, null, COL_SENDTIME);
+
+        if (cursor != null) {
+            cursor.moveToFirst();
+        }
+
+        while(!cursor.isAfterLast()) {
+            if (cursor.getString(1) == message.username
+                    && cursor.getString(2) == message.message){
+                return true;
+            }
+            cursor.moveToNext();
+        }
+
+        sqLiteDatabase.close();
+        return false;
+    }
+
+    public boolean addMessage(ChatMessage chatMessage){
+
+        if(findMessage(chatMessage)){
+            return false;
+        }
+
         SQLiteDatabase sqLiteDatabase = getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -49,51 +76,26 @@ public class MyDbHelper extends SQLiteOpenHelper {
 
         sqLiteDatabase.insert(TABLE_NAME, null, values);
         sqLiteDatabase.close();
+        return true;
+    }
+
+    public void clearDB(){
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+        sqLiteDatabase.delete(TABLE_NAME,null,null);
+        sqLiteDatabase.close();
     }
 
     public void addMockData(){
 
         SQLiteDatabase sqLiteDatabase = getWritableDatabase();
         sqLiteDatabase.delete(TABLE_NAME,null,null);
+        sqLiteDatabase.close();
         ChatMessage chatMessage = new ChatMessage("NOT","Hello1","1");
         ChatMessage chatMessage1 = new ChatMessage("NOT","Hello2","2");
         ChatMessage chatMessage2 = new ChatMessage("NOT1","Hello3","3");
 
         addMessage(chatMessage);
         addMessage(chatMessage1);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
-        addMessage(chatMessage2);
         addMessage(chatMessage2);
     }
 

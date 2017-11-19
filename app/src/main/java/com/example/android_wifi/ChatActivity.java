@@ -15,6 +15,9 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import org.json.JSONObject;
+
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +29,6 @@ public class ChatActivity extends AppCompatActivity {
     private MyDbHelper dbHelper;
     private EditText editText;
     private ImageButton sendButton;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +57,7 @@ public class ChatActivity extends AppCompatActivity {
         });
 
         dbHelper = new MyDbHelper(getApplicationContext());
-        dbHelper.addMockData();
+//        dbHelper.addMockData();
 
         recyclerView = (RecyclerView) findViewById(R.id.messages);
         customAdapter = new CustomAdapter(this, dbHelper.fetchChatMessageList());
@@ -66,9 +68,18 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     public void sendMessage(){
-
-
-
+        int time = (int) (System.currentTimeMillis());
+        Timestamp tsTemp = new Timestamp(time);
+        String ts =  tsTemp.toString();
+        String message = editText.getText().toString();
+        ChatMessage chatMessage = new ChatMessage(ChatManager.USERNAME, message, ts);
+        if(ChatManager.MODE == ChatManager.MODE_CLIENT){
+            JSONObject jsonObject = chatMessage.toJSON();
+            new ChatManager.SocketServerTask().execute(jsonObject);
+        }
+        dbHelper.addMessage(chatMessage);
+        customAdapter.addNewDataOnTop(chatMessage);
+        editText.setText("");
     }
 
 }

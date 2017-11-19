@@ -8,9 +8,9 @@ import org.json.JSONObject;
  */
 
 public class ChatMessage {
-    public final String USERNAME = "USERNAME";
-    public final String MESSAGE = "MESSAGE";
-    public final String TIMESTAMP = "TIMESTAMP";
+    private static final String USERNAME = "USERNAME";
+    private static final String MESSAGE = "MESSAGE";
+    private static final String TIMESTAMP = "TIMESTAMP";
 
     public String username;
     public String message;
@@ -34,7 +34,7 @@ public class ChatMessage {
         return jsonObject;
     }
 
-    public ChatMessage getMessageFrom(JSONObject jsonObject){
+    public static ChatMessage getMessageFrom(JSONObject jsonObject){
 
         String userName = null;
         String message = null;

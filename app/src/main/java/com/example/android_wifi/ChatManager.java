@@ -1,21 +1,15 @@
 package com.example.android_wifi;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.os.Handler;
-import android.support.v4.app.ActivityCompat;
+import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Button;
-import android.widget.EditText;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
@@ -24,155 +18,45 @@ import java.net.SocketException;
 import java.sql.Timestamp;
 import java.util.Enumeration;
 
+import static android.content.ContentValues.TAG;
+
 /**
  * Created by NOT on 11/16/17.
  */
 
 public class ChatManager {
 
-    public String userName = "Unnamed User";
+    public static final int MODE_CLIENT = 0;
+    public static final int MODE_SERVER = 1;
+
+    public static String USERNAME = "Unnamed User";
+    public static int MODE = MODE_CLIENT;
     public Timestamp latestReceive;
     public long messageSeq;
     public Context context;
+    public MyDbHelper myDbHelper;
 
-    public String SERVERIP = "10.0.2.15";
-    public final int SERVERPORT = 8080;
+    public SocketServerThread socketServerThread;
+    public static final String SERVERIP = "192.168.43.1";
+    public static final int SERVERPORT = 8080;
     private ServerSocket serverSocket;
 
-    private String serverIpAddress = "";
-    private boolean connected = false;
-    private Handler handler = new Handler();
 
-    public ChatManager(){
-        SERVERIP = getLocalIpAddress();
+    public ChatManager(Context context){
+        this.context = context;
+//        SERVERIP = getLocalIpAddress();
+        myDbHelper = new MyDbHelper(context);
     }
 
     public void startClient(){
 
-        if (SERVERIP.equals("")) {
-            Thread cThread = new Thread(new ClientThread());
-            cThread.start();
-        }
+
     }
 
     public void startServer(){
-
-        Thread sThread = new Thread(new ServerThread());
-        sThread.start();
-    }
-
-    public class ClientThread implements Runnable {
-
-        public void run() {
-            try {
-                InetAddress serverAddr = InetAddress.getByName(serverIpAddress);
-                Log.d("ClientActivity", "C: Connecting...");
-//                handler.post(new Runnable() {
-//                    @Override
-//                    public void run() {
-//
-//                    }
-//                });
-                Socket socket = new Socket(serverAddr, ServerActivity.SERVERPORT);
-                connected = true;
-                while (connected) {
-                    try {
-                        Log.d("ClientActivity", "C: Sending command.");
-                        PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket
-                                .getOutputStream())), true);
-                        // WHERE YOU ISSUE THE COMMANDS
-                        out.println("Hey Server!");
-                        Log.d("ClientActivity", "C: Sent.");
-                        return;
-                    } catch (Exception e) {
-                        Log.e("ClientActivity", "S: Error", e);
-                    }
-                }
-                socket.close();
-                Log.d("ClientActivity", "C: Closed.");
-            } catch (Exception e) {
-                Log.e("ClientActivity", "C: Error", e);
-                connected = false;
-            }
-        }
-    }
-
-    public class ServerThread implements Runnable {
-
-        public void run() {
-            try {
-                if (SERVERIP != null) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-
-                            Log.d("serverThread", "Listening on IP: " + SERVERIP);
-//                            serverStatus.setText("Listening on IP: " + SERVERIP);
-                        }
-                    });
-                    serverSocket = new ServerSocket(SERVERPORT);
-                    while (true) {
-                        // LISTEN FOR INCOMING CLIENTS
-                        Socket client = serverSocket.accept();
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Log.d("serverThread", "Connected");
-
-//                                serverStatus.setText("Connected.");
-                            }
-                        });
-
-                        try {
-                            BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                            String line = null;
-                            while ((line = in.readLine()) != null) {
-                                Log.d("ServerActivity", line);
-                                handler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        // DO WHATEVER YOU WANT TO THE FRONT END
-                                        // THIS IS WHERE YOU CAN BE CREATIVE
-
-
-                                    }
-                                });
-                            }
-                            break;
-                        } catch (Exception e) {
-                            handler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Log.d("serverThread","Oops. Connection interrupted. Please reconnect your phones.");
-
-//                                    serverStatus.setText("Oops. Connection interrupted. Please reconnect your phones.");
-                                }
-                            });
-                            e.printStackTrace();
-                        }
-                    }
-                } else {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Log.d("serverThread","Couldn't detect internet connection.");
-//                            serverStatus.setText("Couldn't detect internet connection.");
-                        }
-                    });
-                }
-            } catch (Exception e) {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.d("serverThread","Error.");
-//                        serverStatus.setText("Error");
-                    }
-                });
-                e.printStackTrace();
-            }
-        }
-
-
+        socketServerThread = new SocketServerThread();
+        socketServerThread.start();
+        MODE = MODE_SERVER;
     }
 
     private String getLocalIpAddress() {
@@ -201,6 +85,159 @@ public class ChatManager {
             ip += "Something Wrong! " + e.toString() + "\n";
         }
         return null;
+    }
+
+    public static class SocketServerTask extends AsyncTask<JSONObject, Void, Void> {
+        private JSONObject jsonData;
+        private boolean success;
+
+        @Override
+        protected Void doInBackground(JSONObject... params) {
+            Socket socket = null;
+            DataInputStream dataInputStream = null;
+            DataOutputStream dataOutputStream = null;
+            jsonData = params[0];
+
+            try {
+                // Create a new Socket instance and connect to host
+                socket = new Socket(SERVERIP, SERVERPORT);
+
+                dataOutputStream = new DataOutputStream(socket.getOutputStream());
+                dataInputStream = new DataInputStream(socket.getInputStream());
+
+                // transfer JSONObject as String to the server
+                dataOutputStream.writeUTF(jsonData.toString());
+                Log.i(TAG, "waiting for response from host");
+
+                // Thread will wait till server replies
+                String response = dataInputStream.readUTF();
+                if (response != null && response.equals("Connection Accepted")) {
+                    success = true;
+                } else {
+                    success = false;
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                success = false;
+            } finally {
+
+                // close socket
+                if (socket != null) {
+                    try {
+                        Log.i(TAG, "closing the socket");
+                        socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                // close input stream
+                if (dataInputStream != null) {
+                    try {
+                        dataInputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                // close output stream
+                if (dataOutputStream != null) {
+                    try {
+                        dataOutputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            if (success) {
+                Log.d(TAG,"Connection Done");
+//                Toast.makeText(PlayListTestActivity.this, "Connection Done", Toast.LENGTH_SHORT).show();
+            } else {
+                Log.d(TAG,"Unable to connect");
+//                Toast.makeText(PlayListTestActivity.this, "Unable to connect", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private class SocketServerThread extends Thread {
+
+        @Override
+        public void run() {
+            Log.d("server", "running server");
+
+            Socket socket = null;
+            DataInputStream dataInputStream = null;
+            DataOutputStream dataOutputStream = null;
+//
+            try {
+                Log.i(TAG, "Creating server socket");
+                serverSocket = new ServerSocket(SERVERPORT);
+//
+                while (true) {
+                    socket = serverSocket.accept();
+                    dataInputStream = new DataInputStream(
+                            socket.getInputStream());
+                    dataOutputStream = new DataOutputStream(
+                            socket.getOutputStream());
+
+                    String messageFromClient, messageToClient, request;
+
+                    //If no message sent from client, this code will block the program
+                    messageFromClient = dataInputStream.readUTF();
+                    Log.d("server", "Receive Message");
+
+                    final JSONObject jsondata;
+
+                    try {
+                        jsondata = new JSONObject(messageFromClient);
+                        boolean addSuccess = myDbHelper.addMessage(ChatMessage.getMessageFrom(jsondata));
+                        if(addSuccess){
+
+                        }
+                        messageToClient = "Connection Accepted";
+                        dataOutputStream.writeUTF(messageToClient);
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.e(TAG, "Unable to get request");
+                        dataOutputStream.flush();
+                    }
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (socket != null) {
+                    try {
+                        socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                if (dataInputStream != null) {
+                    try {
+                        dataInputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                if (dataOutputStream != null) {
+                    try {
+                        dataOutputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
     }
 
 }

@@ -1,5 +1,6 @@
 package com.example.android_wifi;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -56,6 +57,10 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
+        ChatManager.USERNAME = username;
+        Intent intent = new Intent(this, ChatActivity.class);
+        startActivity(intent);
+        finish();
     }
 
 }
