@@ -1,8 +1,10 @@
 package com.example.android_wifi;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -105,23 +107,24 @@ public class ChatManager {
     }
 
     public void saveMessageFromArray(JSONArray array){
-        for(int i=0; i<array.length(); i++){
-            try {
-                array = array.getJSONArray(0);
-                JSONObject object = array.getJSONObject(i);
+
+        try {
+            for (int i = 0; i < array.length(); i++) {
+
+                JSONArray arrayTemp = array.getJSONArray(i);
+                JSONObject object = arrayTemp.getJSONObject(0);
                 ChatMessage message = ChatMessage.getMessageFrom(object);
-                if(message != null){
-                    if(myDbHelper.addMessage(message)) {
+                if (message != null) {
+                    if (myDbHelper.addMessage(message)) {
                         adapter.addNewDataOnTop(message);
                     }
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
             }
         }
+        catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
-
-
 
     // Task called by client to server
     public class SocketServerTask extends AsyncTask<JSONArray, Void, Void> {
@@ -148,21 +151,15 @@ public class ChatManager {
 
                 // Thread will wait till server replies
                 String messageFromServer = dataInputStream.readUTF();
-                final JSONArray array;
                 try {
-                    array = new JSONArray(messageFromServer);
-                    array.getJSONArray(0);
-                    new Handler(context.getMainLooper()).post(new Runnable() {
-                        @Override
-                        public void run() {
-                            saveMessageFromArray(array);
-                        }
-                    });
-                } catch (JSONException e) {
+                    final JSONArray array = new JSONArray(messageFromServer);
+                    saveMessageFromArray(array);
+
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 success = false;
             } finally {
@@ -239,12 +236,7 @@ public class ChatManager {
 
                     try {
                         final JSONArray array = new JSONArray(messageFromClient);
-                        new Handler(context.getMainLooper()).post(new Runnable() {
-                            @Override
-                            public void run() {
-                                saveMessageFromArray(array);
-                            }
-                        });
+                        saveMessageFromArray(array);
                         dataOutputStream.writeUTF(myDbHelper.fetchChatMessageJSON().toString());
 
                     } catch (JSONException e) {
@@ -254,7 +246,7 @@ public class ChatManager {
                     }
                 }
 
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             } finally {
                 if (socket != null) {
@@ -298,7 +290,7 @@ public class ChatManager {
             while (isRun){
                 new SocketServerTask().execute(myDbHelper.fetchChatMessageJSON());
                 try {
-                    sleep(10000);
+                    sleep(5000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

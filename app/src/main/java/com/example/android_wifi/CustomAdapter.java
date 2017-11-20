@@ -1,6 +1,7 @@
 package com.example.android_wifi;
 
 import android.content.Context;
+import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,7 +46,15 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
 
     public void addNewDataOnTop(ChatMessage chatList) {
         this.mMessages.add((mMessages.size() == 0 ? 0:mMessages.size()),chatList);
-        notifyDataSetChanged();
+        Handler mainHandler = new Handler(context.getMainLooper());
+        Runnable myRunnable = new Runnable() {
+            @Override
+            public void run() {notifyDataSetChanged();
+            } // This is your code
+        };
+        mainHandler.post(myRunnable);
+
+
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
