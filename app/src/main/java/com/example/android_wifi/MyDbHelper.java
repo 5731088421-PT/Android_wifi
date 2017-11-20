@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import org.json.JSONArray;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,15 +45,18 @@ public class MyDbHelper extends SQLiteOpenHelper {
 
         SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
         Cursor cursor = sqLiteDatabase.query
-                (TABLE_NAME, null, COL_SENDTIME+" =?", new String[]{message.timeStamp}, null, null, COL_SENDTIME);
+                (TABLE_NAME, null,  COL_SENDTIME+" =?", new String[]{message.timeStamp}, null, null, null);
 
         if (cursor != null) {
             cursor.moveToFirst();
         }
 
         while(!cursor.isAfterLast()) {
-            if (cursor.getString(1) == message.username
-                    && cursor.getString(2) == message.message){
+            String cUsername = cursor.getString(1);
+            String cMessage = cursor.getString(2);
+
+            if (cUsername.equals(message.username)
+                    && cMessage.equals(message.message)){
                 return true;
             }
             cursor.moveToNext();
@@ -122,6 +127,27 @@ public class MyDbHelper extends SQLiteOpenHelper {
 
         sqLiteDatabase.close();
         return messages;
+    }
+
+    public JSONArray fetchChatMessageJSON(){
+
+        JSONArray array = new JSONArray();
+        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
+        Cursor cursor = sqLiteDatabase.query
+                (TABLE_NAME, null, null, null, null, null, COL_SENDTIME);
+        if (cursor != null) {
+            cursor.moveToFirst();
+        }
+        while(!cursor.isAfterLast()) {
+            ChatMessage chatMessage = new ChatMessage(
+                    cursor.getString(1),
+                    cursor.getString(2),
+                    cursor.getString(3));
+            array.put(chatMessage.toJSON());
+            cursor.moveToNext();
+        }
+        sqLiteDatabase.close();
+        return array;
     }
 
 }

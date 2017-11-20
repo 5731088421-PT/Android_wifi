@@ -38,7 +38,6 @@ import static android.content.ContentValues.TAG;
 public class MainActivity extends AppCompatActivity {
 
     ApManager apManager;
-    ChatManager chatManager;
     WifiConfiguration wifiConfig;
     Timer timer;
 
@@ -59,7 +58,6 @@ public class MainActivity extends AppCompatActivity {
         apManager = new ApManager(this);
         apManager.showWritePermissionSettings(false);
         context = getApplicationContext();
-        chatManager = new ChatManager(context);
 
         clientButton = (Button) findViewById(R.id.clientButton);
         clientButton.setOnClickListener(buttonListenner);
@@ -96,15 +94,15 @@ public class MainActivity extends AppCompatActivity {
             else if(v.getId() == R.id.startClientButton){
 //                Intent intent = new Intent(context, ClientActivity.class);
 //                startActivity(intent);
-                chatManager.startClient();
+                ChatManager.MODE = ChatManager.MODE_CLIENT;
+
             }
             else if(v.getId() == R.id.startServerButton){
 //                Intent intent = new Intent(context, ServerActivity.class);
 //                startActivity(intent);
-                chatManager.startServer();
+                ChatManager.MODE = ChatManager.MODE_SERVER;
             }else if(v.getId() == R.id.chatButton){
                 Intent intent = new Intent(context,LoginActivity.class);
-
                 startActivity(intent);
             }else if(v.getId() == R.id.clearChatButton){
                 MyDbHelper myDbHelper = new MyDbHelper(context);

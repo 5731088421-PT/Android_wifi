@@ -47,11 +47,12 @@
 
             <EditText
                 android:id="@+id/message_input"
-                android:imeActionId="@+id/send"
-                android:imeActionLabel="Send"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:hint="Enter a messae"
+                android:imeActionId="@+id/send"
+                android:imeActionLabel="Send"
                 android:imeOptions="actionSend"
                 android:inputType="text"
                 android:maxLines="1"

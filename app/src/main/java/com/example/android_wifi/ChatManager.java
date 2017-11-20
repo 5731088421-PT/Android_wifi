@@ -2,8 +2,10 @@ package com.example.android_wifi;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -17,6 +19,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.sql.Timestamp;
 import java.util.Enumeration;
+import java.util.List;
 
 import static android.content.ContentValues.TAG;
 
@@ -37,28 +40,42 @@ public class ChatManager {
     public MyDbHelper myDbHelper;
 
     public SocketServerThread socketServerThread;
+    public SocketClientThread socketClientThread;
     public static final String SERVERIP = "192.168.43.1";
     public static final int SERVERPORT = 8080;
     private ServerSocket serverSocket;
+    private CustomAdapter adapter;
 
 
-    public ChatManager(Context context){
+    public ChatManager(Context context, CustomAdapter adapter){
         this.context = context;
 //        SERVERIP = getLocalIpAddress();
         myDbHelper = new MyDbHelper(context);
+        this.adapter = adapter;
+
     }
 
     public void startClient(){
+        socketClientThread = new SocketClientThread();
+        socketClientThread.start();
+    }
 
-
+    public void stopClient(){
+        if(socketClientThread != null){
+            socketClientThread.stopClient();
+        }
     }
 
     public void startServer(){
         socketServerThread = new SocketServerThread();
         socketServerThread.start();
-        MODE = MODE_SERVER;
     }
 
+    public void stopServer(){
+        if(socketServerThread != null){
+            socketServerThread.stopServer();
+        }
+    }
     private String getLocalIpAddress() {
         String ip = "";
         try {
@@ -87,12 +104,32 @@ public class ChatManager {
         return null;
     }
 
-    public static class SocketServerTask extends AsyncTask<JSONObject, Void, Void> {
-        private JSONObject jsonData;
+    public void saveMessageFromArray(JSONArray array){
+        for(int i=0; i<array.length(); i++){
+            try {
+                array = array.getJSONArray(0);
+                JSONObject object = array.getJSONObject(i);
+                ChatMessage message = ChatMessage.getMessageFrom(object);
+                if(message != null){
+                    if(myDbHelper.addMessage(message)) {
+                        adapter.addNewDataOnTop(message);
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+
+    // Task called by client to server
+    public class SocketServerTask extends AsyncTask<JSONArray, Void, Void> {
+        private JSONArray jsonData;
         private boolean success;
 
         @Override
-        protected Void doInBackground(JSONObject... params) {
+        protected Void doInBackground(JSONArray... params) {
             Socket socket = null;
             DataInputStream dataInputStream = null;
             DataOutputStream dataOutputStream = null;
@@ -110,11 +147,19 @@ public class ChatManager {
                 Log.i(TAG, "waiting for response from host");
 
                 // Thread will wait till server replies
-                String response = dataInputStream.readUTF();
-                if (response != null && response.equals("Connection Accepted")) {
-                    success = true;
-                } else {
-                    success = false;
+                String messageFromServer = dataInputStream.readUTF();
+                final JSONArray array;
+                try {
+                    array = new JSONArray(messageFromServer);
+                    array.getJSONArray(0);
+                    new Handler(context.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            saveMessageFromArray(array);
+                        }
+                    });
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
 
             } catch (IOException e) {
@@ -165,8 +210,10 @@ public class ChatManager {
         }
     }
 
-    private class SocketServerThread extends Thread {
 
+    // server wait for incoming message
+    private class SocketServerThread extends Thread {
+        boolean isRun = true;
         @Override
         public void run() {
             Log.d("server", "running server");
@@ -174,34 +221,31 @@ public class ChatManager {
             Socket socket = null;
             DataInputStream dataInputStream = null;
             DataOutputStream dataOutputStream = null;
-//
+
             try {
                 Log.i(TAG, "Creating server socket");
                 serverSocket = new ServerSocket(SERVERPORT);
-//
-                while (true) {
+
+                while (isRun) {
                     socket = serverSocket.accept();
                     dataInputStream = new DataInputStream(
                             socket.getInputStream());
                     dataOutputStream = new DataOutputStream(
                             socket.getOutputStream());
 
-                    String messageFromClient, messageToClient, request;
-
                     //If no message sent from client, this code will block the program
-                    messageFromClient = dataInputStream.readUTF();
+                    String messageFromClient = dataInputStream.readUTF();
                     Log.d("server", "Receive Message");
 
-                    final JSONObject jsondata;
-
                     try {
-                        jsondata = new JSONObject(messageFromClient);
-                        boolean addSuccess = myDbHelper.addMessage(ChatMessage.getMessageFrom(jsondata));
-                        if(addSuccess){
-
-                        }
-                        messageToClient = "Connection Accepted";
-                        dataOutputStream.writeUTF(messageToClient);
+                        final JSONArray array = new JSONArray(messageFromClient);
+                        new Handler(context.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                saveMessageFromArray(array);
+                            }
+                        });
+                        dataOutputStream.writeUTF(myDbHelper.fetchChatMessageJSON().toString());
 
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -238,6 +282,31 @@ public class ChatManager {
                 }
             }
         }
+
+        public void stopServer(){
+            isRun = false;
+        }
     }
 
+    private class SocketClientThread extends Thread {
+        MyDbHelper myDbHelper = new MyDbHelper(context);
+        boolean isRun = true;
+        @Override
+        public void run() {
+            Log.d("client", "running client");
+
+            while (isRun){
+                new SocketServerTask().execute(myDbHelper.fetchChatMessageJSON());
+                try {
+                    sleep(10000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void stopClient(){
+            isRun = false;
+        }
+    }
 }

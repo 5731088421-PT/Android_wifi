@@ -6,24 +6,18 @@ import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Editable;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-
-import org.json.JSONObject;
-
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ChatActivity extends AppCompatActivity {
 
     private Context context;
+    private ChatManager chatManager;
     private RecyclerView recyclerView;
     private CustomAdapter customAdapter;
     private MyDbHelper dbHelper;
@@ -65,6 +59,22 @@ public class ChatActivity extends AppCompatActivity {
         recyclerView.setAdapter(customAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
+        chatManager = new ChatManager(context, customAdapter);
+
+        if(ChatManager.MODE == ChatManager.MODE_SERVER){
+            chatManager.startServer();
+        }
+        else if(ChatManager.MODE == ChatManager.MODE_CLIENT){
+            chatManager.startClient();
+        }
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        chatManager.stopClient();
+        chatManager.stopServer();
     }
 
     public void sendMessage(){
@@ -73,13 +83,12 @@ public class ChatActivity extends AppCompatActivity {
         String ts =  tsTemp.toString();
         String message = editText.getText().toString();
         ChatMessage chatMessage = new ChatMessage(ChatManager.USERNAME, message, ts);
-        if(ChatManager.MODE == ChatManager.MODE_CLIENT){
-            JSONObject jsonObject = chatMessage.toJSON();
-            new ChatManager.SocketServerTask().execute(jsonObject);
-        }
+//        if(ChatManager.MODE == ChatManager.MODE_CLIENT){
+//            JSONArray jsonObject = chatMessage.toJSON();
+//            new ChatManager.SocketServerTask().execute(jsonObject);
+//        }
         dbHelper.addMessage(chatMessage);
         customAdapter.addNewDataOnTop(chatMessage);
         editText.setText("");
     }
-
 }
