@@ -116,7 +116,7 @@ public class ChatManager {
                 ChatMessage message = ChatMessage.getMessageFrom(object);
                 if (message != null) {
                     if (myDbHelper.addMessage(message)) {
-                        adapter.addNewDataOnTop(message);
+                        adapter.addNewDataToRecycler(message);
                     }
                 }
             }

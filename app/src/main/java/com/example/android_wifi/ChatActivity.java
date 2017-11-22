@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -23,6 +24,7 @@ public class ChatActivity extends AppCompatActivity {
     private MyDbHelper dbHelper;
     private EditText editText;
     private ImageButton sendButton;
+    private LinearLayoutManager llm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,9 +59,19 @@ public class ChatActivity extends AppCompatActivity {
         customAdapter = new CustomAdapter(this, dbHelper.fetchChatMessageList());
 
         recyclerView.setAdapter(customAdapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        recyclerView.setHasFixedSize(true);
+        llm = new LinearLayoutManager(context);
+        llm.setAutoMeasureEnabled(false);
+        recyclerView.setLayoutManager(llm);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                llm.scrollToPosition(customAdapter.getItemCount()-1);
+            }
+        });
         chatManager = new ChatManager(context, customAdapter);
+
 
         if(ChatManager.MODE == ChatManager.MODE_SERVER){
             chatManager.startServer();
@@ -78,17 +90,31 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     public void sendMessage(){
-        int time = (int) (System.currentTimeMillis());
-        Timestamp tsTemp = new Timestamp(time);
-        String ts =  tsTemp.toString();
+        editText.setError(null);
+        String username = editText.getText().toString().trim();
+        if (TextUtils.isEmpty(username)) {
+            // There was an error; don't attempt login and focus the first
+            // form field with an error.
+            editText.setError("Please enter message before send");
+            editText.requestFocus();
+            return;
+        }
+        long time = System.currentTimeMillis();
+//        Timestamp tsTemp = new Timestamp(time);
+//        String ts =  tsTemp.toString();
         String message = editText.getText().toString();
-        ChatMessage chatMessage = new ChatMessage(ChatManager.USERNAME, message, ts);
+        ChatMessage chatMessage = new ChatMessage(ChatManager.USERNAME, message, time+"");
 //        if(ChatManager.MODE == ChatManager.MODE_CLIENT){
 //            JSONArray jsonObject = chatMessage.toJSON();
 //            new ChatManager.SocketServerTask().execute(jsonObject);
 //        }
         dbHelper.addMessage(chatMessage);
-        customAdapter.addNewDataOnTop(chatMessage);
+        customAdapter.addNewDataToRecycler(chatMessage);
+        scrollToBottom();
         editText.setText("");
+    }
+
+    public void scrollToBottom(){
+        llm.scrollToPosition(customAdapter.getItemCount()-1);
     }
 }

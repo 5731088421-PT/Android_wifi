@@ -28,7 +28,7 @@
             android:layout_marginBottom="20dp"
             android:text="Enter username to join chat"
             android:textAlignment="textStart"
-            android:textColor="@color/colorPrimaryDark"
+            android:textColor="@color/colorPrimary"
             android:textSize="24sp"
             android:textStyle="bold" />
 

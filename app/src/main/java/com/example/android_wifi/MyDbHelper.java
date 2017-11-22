@@ -105,12 +105,12 @@ public class MyDbHelper extends SQLiteOpenHelper {
     }
 
     public List<ChatMessage> fetchChatMessageList(){
-        List<ChatMessage> messages = new ArrayList<ChatMessage>();
+        List<ChatMessage> messages = new ArrayList<>();
 
         SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
 
         Cursor cursor = sqLiteDatabase.query
-                (TABLE_NAME, null, null, null, null, null, COL_SENDTIME);
+                (TABLE_NAME, null, null, null, null, null, COL_SENDTIME + " ASC");
 
         if (cursor != null) {
             cursor.moveToFirst();
