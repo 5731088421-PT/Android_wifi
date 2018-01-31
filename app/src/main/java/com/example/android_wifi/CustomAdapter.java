@@ -1,8 +1,6 @@
 package com.example.android_wifi;
 
-import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.view.Gravity;
@@ -12,12 +10,9 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.sql.Timestamp;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.TimeZone;
 
 /**

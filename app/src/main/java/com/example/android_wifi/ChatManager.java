@@ -1,10 +1,7 @@
 package com.example.android_wifi;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -21,7 +18,6 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.sql.Timestamp;
 import java.util.Enumeration;
-import java.util.List;
 
 import static android.content.ContentValues.TAG;
 

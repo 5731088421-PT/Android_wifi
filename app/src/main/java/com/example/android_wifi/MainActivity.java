@@ -27,8 +27,13 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.InetAddress;
 import java.sql.Time;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -128,4 +133,33 @@ public class MainActivity extends AppCompatActivity {
         statusText.setText(text);
     }
 
+    public static void setIpAddress(InetAddress addr, int prefixLength, WifiConfiguration wifiConf)
+            throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
+            NoSuchMethodException, ClassNotFoundException, InstantiationException, InvocationTargetException {
+        Object linkProperties = getField(wifiConf, "linkProperties");
+        if(linkProperties == null)return;
+        Class laClass = Class.forName("android.net.LinkAddress");
+        Constructor laConstructor = laClass.getConstructor(new Class[]{InetAddress.class, int.class});
+        Object linkAddress = laConstructor.newInstance(addr, prefixLength);
+
+        ArrayList mLinkAddresses = (ArrayList)getDeclaredField(linkProperties, "mLinkAddresses");
+        mLinkAddresses.clear();
+        mLinkAddresses.add(linkAddress);
+    }
+
+    public static Object getField(Object obj, String name)
+            throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
+        Field f = obj.getClass().getField(name);
+        Object out = f.get(obj);
+        return out;
+    }
+
+    public static Object getDeclaredField(Object obj, String name)
+            throws SecurityException, NoSuchFieldException,
+            IllegalArgumentException, IllegalAccessException {
+        Field f = obj.getClass().getDeclaredField(name);
+        f.setAccessible(true);
+        Object out = f.get(obj);
+        return out;
+    }
 }
