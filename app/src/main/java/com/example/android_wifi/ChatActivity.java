@@ -1,119 +1,107 @@
 package com.example.android_wifi;
 
-import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.net.nsd.NsdServiceInfo;
 import android.os.Bundle;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
-import android.view.KeyEvent;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
-public class ChatActivity extends AppCompatActivity {
+public class ChatActivity extends Activity {
+    NsdHelper mNsdHelper;
 
-    private Context context;
-    private ChatManager chatManager;
-    private RecyclerView recyclerView;
-    private CustomAdapter customAdapter;
-    private MyDbHelper dbHelper;
-    private EditText editText;
-    private ImageButton sendButton;
-    private LinearLayoutManager llm;
+    private TextView mStatusView;
+    private Handler mUpdateHandler;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public static final String TAG = "NsdChat";
+
+    ChatConnection mConnection;
+
+    /** Called when the activity is first created. */
+    @SuppressLint("HandlerLeak")
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-        context = getApplicationContext();
-        editText = (EditText) findViewById(R.id.message_input);
-        editText.setOnEditorActionListener(
-                new TextView.OnEditorActionListener() {
-                    @Override
-                    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                        if (actionId == R.id.send || actionId == EditorInfo.IME_NULL) {
-                            sendMessage();
-                            return true;
-                        }
-                        return false;
-                    }
-                }
-        );
-        sendButton = (ImageButton) findViewById(R.id.send_button);
-        sendButton.setOnClickListener(new View.OnClickListener() {
+        mStatusView = (TextView) findViewById(R.id.status);
+
+        mUpdateHandler = new Handler() {
             @Override
-            public void onClick(View v) {
-                sendMessage();
+            public void handleMessage(Message msg) {
+                String chatLine = msg.getData().getString("msg");
+                addChatLine(chatLine);
             }
-        });
+        };
 
-        dbHelper = new MyDbHelper(getApplicationContext());
-//        dbHelper.addMockData();
+        mConnection = new ChatConnection(mUpdateHandler);
 
-        recyclerView = (RecyclerView) findViewById(R.id.messages);
-        customAdapter = new CustomAdapter(this, dbHelper.fetchChatMessageList());
+        mNsdHelper = new NsdHelper(this);
+        mNsdHelper.initializeNsd();
 
-        recyclerView.setAdapter(customAdapter);
-        recyclerView.setHasFixedSize(true);
-        llm = new LinearLayoutManager(context);
-        llm.setAutoMeasureEnabled(false);
-        recyclerView.setLayoutManager(llm);
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
-        recyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-            @Override
-            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                llm.scrollToPosition(customAdapter.getItemCount()-1);
+    }
+
+    public void clickAdvertise(View v) {
+        // Register service
+        if(mConnection.getLocalPort() > -1) {
+            mNsdHelper.registerService(mConnection.getLocalPort());
+        } else {
+            Log.d(TAG, "ServerSocket isn't bound.");
+        }
+    }
+
+    public void clickDiscover(View v) {
+        mNsdHelper.discoverServices();
+    }
+
+    public void clickConnect(View v) {
+//        NsdServiceInfo service = mNsdHelper.getChosenServiceInfo();
+//        if (service != null) {
+//            Log.d(TAG, "Connecting.");
+//            mConnection.connectToServer(service.getHost(),
+//                    service.getPort());
+//        } else {
+//            Log.d(TAG, "No service to connect to!");
+//        }
+    }
+
+    public void clickSend(View v) {
+        EditText messageView = (EditText) this.findViewById(R.id.chatInput);
+        if (messageView != null) {
+            String messageString = messageView.getText().toString();
+            if (!messageString.isEmpty()) {
+                mConnection.sendMessage(messageString);
             }
-        });
-        chatManager = new ChatManager(context, customAdapter);
-
-
-        if(ChatManager.MODE == ChatManager.MODE_SERVER){
-            chatManager.startServer();
+            messageView.setText("");
         }
-        else if(ChatManager.MODE == ChatManager.MODE_CLIENT){
-            chatManager.startClient();
-        }
+    }
 
+    public void addChatLine(String line) {
+        mStatusView.append("\n" + line);
+    }
+
+    @Override
+    protected void onPause() {
+        if (mNsdHelper != null) {
+            mNsdHelper.stopDiscovery();
+        }
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mNsdHelper != null) {
+            mNsdHelper.discoverServices();
+        }
     }
 
     @Override
     protected void onDestroy() {
+        mNsdHelper.tearDown();
+        mConnection.tearDown();
         super.onDestroy();
-        chatManager.stopClient();
-        chatManager.stopServer();
-    }
-
-    public void sendMessage(){
-        editText.setError(null);
-        String username = editText.getText().toString().trim();
-        if (TextUtils.isEmpty(username)) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
-            editText.setError("Please enter message before send");
-            editText.requestFocus();
-            return;
-        }
-        long time = System.currentTimeMillis();
-//        Timestamp tsTemp = new Timestamp(time);
-//        String ts =  tsTemp.toString();
-        String message = editText.getText().toString();
-        ChatMessage chatMessage = new ChatMessage(ChatManager.USERNAME, message, time+"");
-//        if(ChatManager.MODE == ChatManager.MODE_CLIENT){
-//            JSONArray jsonObject = chatMessage.toJSON();
-//            new ChatManager.SocketServerTask().execute(jsonObject);
-//        }
-        dbHelper.addMessage(chatMessage);
-        customAdapter.addNewDataToRecycler(chatMessage);
-        scrollToBottom();
-        editText.setText("");
-    }
-
-    public void scrollToBottom(){
-        llm.scrollToPosition(customAdapter.getItemCount()-1);
     }
 }

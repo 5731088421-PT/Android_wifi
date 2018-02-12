@@ -4,6 +4,8 @@ import android.content.Context;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
 import android.util.Log;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by NOT on 1/18/18.
@@ -21,13 +23,14 @@ public class NsdHelper {
     public static final String SERVICE_TYPE = "_http._tcp.";
 
     public static final String TAG = "NsdHelper";
-    public String mServiceName = "NsdChat";
+    public String mServiceName = "ChatAdhoc";
 
-    NsdServiceInfo mService;
+    Map<String , NsdServiceInfo> mServices;
 
     public NsdHelper(Context context) {
         mContext = context;
         mNsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
+        mServices = new HashMap<>();
     }
 
     public void initializeNsd() {
@@ -36,7 +39,6 @@ public class NsdHelper {
         initializeRegistrationListener();
 
         //mNsdManager.init(mContext.getMainLooper(), this);
-
     }
 
     public void initializeDiscoveryListener() {
@@ -62,9 +64,10 @@ public class NsdHelper {
             @Override
             public void onServiceLost(NsdServiceInfo service) {
                 Log.e(TAG, "service lost" + service);
-                if (mService == service) {
-                    mService = null;
-                }
+//                if (mService == service) {
+//                    mService = null;
+//                }
+                mServices.remove(service.getServiceName());
             }
 
             @Override
@@ -102,7 +105,8 @@ public class NsdHelper {
                     Log.d(TAG, "Same IP.");
                     return;
                 }
-                mService = serviceInfo;
+//                mService = serviceInfo;
+                mServices.put(serviceInfo.getServiceName(), serviceInfo);
             }
         };
     }
@@ -150,8 +154,8 @@ public class NsdHelper {
         mNsdManager.stopServiceDiscovery(mDiscoveryListener);
     }
 
-    public NsdServiceInfo getChosenServiceInfo() {
-        return mService;
+    public Map<String , NsdServiceInfo> getChosenServiceInfo() {
+        return mServices;
     }
 
     public void tearDown() {

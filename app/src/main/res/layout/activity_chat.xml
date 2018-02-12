@@ -1,75 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.example.android_wifi.ChatActivity">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
 
     <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="96dp"
+        android:orientation="horizontal" >
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/messages"
-            android:clipToPadding="false"
-            android:paddingTop="16dp"
-            android:paddingBottom="16dp"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:scrollbarStyle="outsideOverlay"
-            android:scrollbars="vertical"
-            app:layout_constraintBottom_toTopOf="@+id/linearLayout"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+        <Button
+            android:id="@+id/advertise_btn"
+            android:layout_width="96dp"
+            android:layout_height="64dp"
+            android:onClick="clickAdvertise"
+            android:text="@string/register" />
 
-        <LinearLayout
-            android:id="@+id/linearLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginStart="8dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+        <Button
+            android:id="@+id/discover_btn"
+            android:layout_width="96dp"
+            android:layout_height="64dp"
+            android:onClick="clickDiscover"
+            android:text="@string/discover" />
 
-            <EditText
-                android:id="@+id/message_input"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:scrollbars="vertical"
-                android:hint="Enter a message"
-                android:imeActionId="@+id/send"
-                android:imeActionLabel="Send"
-                android:imeOptions="actionSend"
-                android:inputType="textMultiLine"
-                android:maxLines="6"
-                android:singleLine="false"
-                tools:ignore="InvalidImeActionId" />
-
-            <ImageButton
-                android:id="@+id/send_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@android:drawable/ic_menu_send" />
-
-        </LinearLayout>
+        <Button
+            android:id="@+id/connect_btn"
+            android:layout_width="96dp"
+            android:layout_height="64dp"
+            android:onClick="clickConnect"
+            android:text="@string/connect" />
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/status"
+        android:layout_width="fill_parent"
+        android:layout_height="200dp"
+        android:focusable="true" />
 
+    <EditText
+        android:id="@+id/chatInput"
+        android:layout_width="fill_parent"
+        android:layout_height="80dp"
+        android:inputType="text"
+        android:singleLine="true" />
 
-</android.support.constraint.ConstraintLayout>
+    <Button
+        android:id="@+id/send_btn"
+        android:layout_width="96dp"
+        android:layout_height="64dp"
+        android:onClick="clickSend"
+        android:text="@string/send" />
+
+</LinearLayout>
+

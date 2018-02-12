@@ -6,8 +6,8 @@ android {
     defaultConfig {
         applicationId "com.example.android_wifi"
         minSdkVersion 23
-        targetSdkVersion 25
-        maxSdkVersion 25
+        targetSdkVersion 23
+        maxSdkVersion 23
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"

@@ -11,10 +11,18 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -270,4 +278,34 @@ public class ChatConnection {
             Log.d(CLIENT_TAG, "Client sent message: " + msg);
         }
     }
+
+//    public static void broadcast (String broadcastMessage, InetAddress address) throws IOException {
+//        DatagramSocket socket = new DatagramSocket();
+//        socket.setBroadcast(true);
+//
+//        byte[] buffer = broadcastMessage.getBytes();
+//
+//        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, 4445);
+//        socket.send(packet);
+//        socket.close();
+//    }
+//
+//    public static List<InetAddress> listAllBroadcastAddresses() throws SocketException {
+//        List<InetAddress> broadcastList = new ArrayList<>();
+//        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+//        while (interfaces.hasMoreElements()) {
+//            NetworkInterface networkInterface = interfaces.nextElement();
+//
+//            if (networkInterface.isLoopback() || !networkInterface.isUp()) {
+//                continue;
+//            }
+//
+//            networkInterface.getInterfaceAddresses().stream()
+//                    .map(a -> a.getBroadcast())
+//                    .filter(Objects::nonNull)
+//                    .forEach(broadcastList::add);
+//        }
+//        return broadcastList;
+//    }
+
 }

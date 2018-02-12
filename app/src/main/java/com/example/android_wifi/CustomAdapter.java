@@ -79,7 +79,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
             public void run() {
 
                 notifyDataSetChanged();
-                ((ChatActivity) context).scrollToBottom();
+//                ((ChatActivity) context).scrollToBottom();
 
 
             } // This is your code
