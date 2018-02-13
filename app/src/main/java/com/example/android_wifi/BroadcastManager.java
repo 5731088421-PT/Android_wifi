@@ -1,3 +1,7 @@
+/*
+  Created by NOT on 2/12/18.
+ */
+
 package com.example.android_wifi;
 
 import android.content.Context;
@@ -15,25 +19,28 @@ import java.lang.reflect.Method;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InterfaceAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Enumeration;
+import java.util.List;
 
 import static android.content.ContentValues.TAG;
 
-/**
- * Created by NOT on 2/12/18.
- */
+
 
 public class BroadcastManager {
 
     private Context mContext;
 
-    public BroadcastManager(Context ctx){
+    BroadcastManager(Context ctx){
         this.mContext = ctx;
     }
 
     // Send
 
-    public void sendBroadcast(String messageStr) {
+    void sendBroadcast(String messageStr) {
         // Hack Prevent crash (sending should be done using an async task)
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -42,7 +49,8 @@ public class BroadcastManager {
             DatagramSocket socket = new DatagramSocket();
             socket.setBroadcast(true);
             byte[] sendData = messageStr.getBytes();
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, getBroadcastAddress(), 1234);
+            InetAddress broadcastAddr = getBroadcast(getIpAddress());
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, broadcastAddr, 1234);
             socket.send(sendPacket);
 //            System.out.println(getClass().getName() + "Broadcast packet sent to: " + getBroadcastAddress().getHostAddress());
         } catch (IOException e) {
@@ -64,7 +72,7 @@ public class BroadcastManager {
         return InetAddress.getByAddress(quads);
     }
 
-    public static int getCodecIpAddress(WifiManager wm, NetworkInfo wifi){
+    private static int getCodecIpAddress(WifiManager wm, NetworkInfo wifi){
         WifiInfo wi = wm.getConnectionInfo();
         if(wifi != null && wifi.isConnected())
             return wi.getIpAddress(); //normal wifi
@@ -102,6 +110,57 @@ public class BroadcastManager {
 
     private static int convertIP2Int(byte[] ipAddress){
         return (int) (Math.pow(256, 3)*Integer.valueOf(ipAddress[3] & 0xFF)+Math.pow(256, 2)*Integer.valueOf(ipAddress[2] & 0xFF)+256*Integer.valueOf(ipAddress[1] & 0xFF)+Integer.valueOf(ipAddress[0] & 0xFF));
+    }
+
+    public InetAddress getIpAddress() {
+        InetAddress inetAddress = null;
+        InetAddress myAddr = null;
+
+        try {
+            for (Enumeration<NetworkInterface> networkInterface = NetworkInterface.getNetworkInterfaces(); networkInterface.hasMoreElements();) {
+
+                NetworkInterface singleInterface = networkInterface.nextElement();
+
+                for (Enumeration < InetAddress > IpAddresses = singleInterface.getInetAddresses(); IpAddresses
+                        .hasMoreElements();) {
+                    inetAddress = IpAddresses.nextElement();
+
+                    if (!inetAddress.isLoopbackAddress() && (singleInterface.getDisplayName()
+                            .contains("wlan0") ||
+                            singleInterface.getDisplayName().contains("eth0") ||
+                            singleInterface.getDisplayName().contains("ap0"))) {
+
+                        myAddr = inetAddress;
+                    }
+                }
+            }
+
+        } catch (SocketException ex) {
+            Log.e(TAG, ex.toString());
+        }
+        return myAddr;
+    }
+
+    public InetAddress getBroadcast(InetAddress inetAddr) {
+
+        NetworkInterface temp;
+        InetAddress iAddr = null;
+        try {
+            temp = NetworkInterface.getByInetAddress(inetAddr);
+            List<InterfaceAddress> addresses = temp.getInterfaceAddresses();
+
+            for (InterfaceAddress inetAddress: addresses)
+
+                iAddr = inetAddress.getBroadcast();
+            Log.d(TAG, "iAddr=" + iAddr);
+            return iAddr;
+
+        } catch (SocketException e) {
+
+            e.printStackTrace();
+            Log.d(TAG, "getBroadcast" + e.getMessage());
+        }
+        return null;
     }
 
     // Listen
