@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
         setSupportActionBar(myToolbar);
         context = getApplicationContext();
         mApManager = new ApManager(this);
+        mApManager.showWritePermissionSettings(false);
         mApManager.responseReceivedListener = this;
         mApManager.initReceiver();
 
@@ -51,8 +52,8 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
         registerReceiver(mApManager.connectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         registerReceiver(mApManager.wifiApReceiver, new IntentFilter("android.net.wifi.WIFI_AP_STATE_CHANGED"));
 
-        mApManager.showWritePermissionSettings(false);
         mBroadcastManager = new BroadcastManager();
+        mBroadcastManager.responseReceivedListener = this;
 
         bindUI();
     }
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
         super.onDestroy();
         unregisterReceiver(mApManager.wifiReceiver);
         unregisterReceiver(mApManager.connectivityReceiver);
+        unregisterReceiver(mApManager.wifiApReceiver);
     }
 
     private void bindUI(){
@@ -105,15 +107,23 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
             else if(v.getId() == R.id.hotspotButton){
                 mApManager.hotspotMode();
             }
+            else if(v.getId() == R.id.autoWifiButton){
+                mApManager.startAutoSwitchWifi();
+            }
             else if(v.getId() == R.id.startClientButton){
-                Intent intent = new Intent(context, ClientActivity.class);
-                startActivity(intent);
+//                Intent intent = new Intent(context, ClientActivity.class);
+//                startActivity(intent);
                 ChatManager.MODE = ChatManager.MODE_CLIENT;
+                setSocketStatus("Client Selected");
             }
             else if(v.getId() == R.id.startServerButton) {
-                Intent intent = new Intent(context, ServerActivity.class);
-                startActivity(intent);
+//                Intent intent = new Intent(context, ServerActivity.class);
+//                startActivity(intent);
                 ChatManager.MODE = ChatManager.MODE_SERVER;
+                setSocketStatus("Server Selected");
+            }
+            else if(v.getId() == R.id.autoSocketButton){
+
             }
             else if(v.getId() == R.id.startListenBroadcastButton){
                 mBroadcastManager.listenBroadcast();
@@ -121,17 +131,18 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
             else if(v.getId() == R.id.startSendBroadcastButton){
                 mBroadcastManager.sendBroadcast("Test Hello!");
             }
+            else if(v.getId() == R.id.autoBroadcastButton){
+                mBroadcastManager.startAutoBroadcast();
+            }
             else if(v.getId() == R.id.chatButton){
-                Intent intent = new Intent(context,ChatActivity.class);
+                Intent intent = new Intent(context,LoginActivity.class);
                 startActivity(intent);
             }
             else if(v.getId() == R.id.clearChatButton){
                 MyDbHelper myDbHelper = new MyDbHelper(context);
                 myDbHelper.clearDB();
             }
-            else if(v.getId() == R.id.autoWifiButton){
-                mApManager.startAutoSwitchWifi();
-            }
+
         }
     };
 
@@ -140,27 +151,40 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
     }
 
     public void setBroadcastStatus(String text){
-        wifiStatusTextView.setText(text);
+        broadcastStatusTextView.setText(text);
     }
 
     public void setSocketStatus(String text){
-        wifiStatusTextView.setText(text);
-    }
-
-
-
-    @Override
-    public void onWifiStatusChanged(String value) {
-        setWifiStatus(value);
+        socketStatusTextView.setText(text);
     }
 
     @Override
-    public void onBroadcastStatusChanged(String value) {
-        setBroadcastStatus(value);
+    public void onWifiStatusChanged(final String value) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                setWifiStatus(value);
+            }
+        });
     }
 
     @Override
-    public void onSocketStatusChanged(String value) {
-        setSocketStatus(value);
+    public void onBroadcastStatusChanged(final String value) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                setBroadcastStatus(value);
+            }
+        });
+    }
+
+    @Override
+    public void onSocketStatusChanged(final String value) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                setSocketStatus(value);
+            }
+        });
     }
 }

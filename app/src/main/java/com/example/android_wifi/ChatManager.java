@@ -286,7 +286,7 @@ public class ChatManager {
             while (isRun){
                 new SocketServerTask().execute(myDbHelper.fetchChatMessageJSON());
                 try {
-                    sleep(5000);
+                    sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

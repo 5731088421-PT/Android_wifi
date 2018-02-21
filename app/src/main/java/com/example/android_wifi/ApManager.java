@@ -1,3 +1,7 @@
+/**
+ * Created by NOT on 10/25/17.
+ */
+
 package com.example.android_wifi;
 
 import java.io.BufferedReader;
@@ -22,9 +26,7 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.util.Log;
 
-/**
- * Created by NOT on 10/25/17.
- */
+
 
 public class ApManager {
 
@@ -145,7 +147,11 @@ public class ApManager {
                 });
             }
         };
-        wifiTimer.schedule(doAsynchronousTask, 0,10000); //put the time you want
+        wifiTimer.schedule(doAsynchronousTask, 0,getWifiInterval()); //put the time you want
+    }
+
+    private long getWifiInterval(){
+        return 10000;
     }
 
     void stopAutoSwitchWifi() {
@@ -159,7 +165,6 @@ public class ApManager {
         if(!mWifiManager.isWifiEnabled()){
             mWifiManager.setWifiEnabled(true);
         }
-
     }
 
     void connectToAp(WifiConfiguration config){
