@@ -1,57 +1,105 @@
 package com.example.android_wifi;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.net.wifi.WifiConfiguration;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.wifi.WifiManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Timer;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ResponseReceivedListener{
 
     ApManager mApManager;
-    WifiConfiguration wifiConfig;
     BroadcastManager mBroadcastManager;
-    Timer timer;
-
+    BroadcastReceiver wifiReceiver;
+    BroadcastReceiver connectivityReceiver;
 
     Button clientButton;
     Button hotspotButton;
+    Button autoWifiButton;
     Button startClientButton;
     Button startHotspotButton;
+    Button autoSocketButton;
+    Button listenBroadcastButton;
+    Button sendBroadcastButton;
+    Button autoBroadcastButton;
     Button chatButton;
     Button clearChatButton;
-    TextView statusText;
+
+    TextView wifiStatusTextView;
+    TextView broadcastStatusTextView;
+    TextView socketStatusTextView;
+
+
     Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
         context = getApplicationContext();
-
         mApManager = new ApManager(this);
-        mApManager.showWritePermissionSettings(false);
+        mApManager.responseReceivedListener = this;
 
-        mBroadcastManager = new BroadcastManager(this);
+        mApManager.showWritePermissionSettings(false);
+        mBroadcastManager = new BroadcastManager();
 
         bindUI();
 
-        wifiConfig = new WifiConfiguration();
-        wifiConfig.SSID = "MANET";
-        wifiConfig.preSharedKey = "123456789";
-        wifiConfig.allowedAuthAlgorithms.set(0);
-        wifiConfig.allowedKeyManagement.set(4);
+        initReceiver();
+        registerReceiver(wifiReceiver,new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
+        registerReceiver(connectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(wifiReceiver);
+        unregisterReceiver(connectivityReceiver);
+    }
+
+    private void initReceiver(){
+        wifiReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                switch (intent.getExtras().getInt(WifiManager.EXTRA_WIFI_STATE)){
+                    case WifiManager.WIFI_STATE_ENABLED:
+                        mApManager.connectToAp(mApManager.mWifiConfig);
+                        setWifiStatus("Wifi Enabled");
+                        return;
+                    case WifiManager.WIFI_STATE_ENABLING:
+                        setWifiStatus("Enabling Wifi");
+                        return;
+                    case WifiManager.WIFI_STATE_DISABLING:
+                        setWifiStatus("Disabling Wifi");
+                        return;
+                    case WifiManager.WIFI_STATE_DISABLED:
+                        setWifiStatus("Wifi Disabled");
+                        return;
+                }
+            }
+        };
+
+        connectivityReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Boolean status = intent.getExtras().getBoolean(ConnectivityManager.EXTRA_NO_CONNECTIVITY);
+                if(status){
+                    setWifiStatus("Finding Hotspot..");
+                } else {
+                    setWifiStatus("Connected");
+                }
+            }
+        };
     }
 
     private void bindUI(){
@@ -59,93 +107,101 @@ public class MainActivity extends AppCompatActivity {
         clientButton.setOnClickListener(buttonListenner);
         hotspotButton = (Button) findViewById(R.id.hotspotButton);
         hotspotButton.setOnClickListener(buttonListenner);
+        autoWifiButton = (Button) findViewById(R.id.autoWifiButton);
+        autoWifiButton.setOnClickListener(buttonListenner);
+
         startClientButton = (Button) findViewById(R.id.startClientButton);
         startClientButton.setOnClickListener(buttonListenner);
         startHotspotButton = (Button) findViewById(R.id.startServerButton);
         startHotspotButton.setOnClickListener(buttonListenner);
+        autoSocketButton = (Button) findViewById(R.id.autoSocketButton);
+        autoSocketButton.setOnClickListener(buttonListenner);
+
+        listenBroadcastButton = (Button) findViewById(R.id.startListenBroadcastButton);
+        listenBroadcastButton.setOnClickListener(buttonListenner);
+        sendBroadcastButton = (Button) findViewById(R.id.startSendBroadcastButton);
+        sendBroadcastButton.setOnClickListener(buttonListenner);
+        autoBroadcastButton = (Button) findViewById(R.id.autoBroadcastButton);
+        autoBroadcastButton.setOnClickListener(buttonListenner);
+
         chatButton = (Button) findViewById(R.id.chatButton);
         chatButton.setOnClickListener(buttonListenner);
         clearChatButton = (Button) findViewById(R.id.clearChatButton);
         clearChatButton.setOnClickListener(buttonListenner);
-        statusText = (TextView) findViewById(R.id.statustext);
+
+        wifiStatusTextView = (TextView) findViewById(R.id.wifiStatus);
+        broadcastStatusTextView = (TextView) findViewById(R.id.broadcastStatus);
+        socketStatusTextView = (TextView) findViewById(R.id.socketStatus);
     }
 
     private View.OnClickListener buttonListenner = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             if (v.getId() == R.id.clientButton){
-                clientMode();
-                setStatus("This device is Client");
+                mApManager.clientMode();
+                setWifiStatus("Client...");
             }
             else if(v.getId() == R.id.hotspotButton){
-                hotspotMode();
-                setStatus("This device is Server");
+                mApManager.hotspotMode();
+                setWifiStatus("Hotspot...");
             }
             else if(v.getId() == R.id.startClientButton){
-//                Intent intent = new Intent(context, ClientActivity.class);
-//                startActivity(intent);
-//                ChatManager.MODE = ChatManager.MODE_CLIENT;
+                Intent intent = new Intent(context, ClientActivity.class);
+                startActivity(intent);
+                ChatManager.MODE = ChatManager.MODE_CLIENT;
+            }
+            else if(v.getId() == R.id.startServerButton) {
+                Intent intent = new Intent(context, ServerActivity.class);
+                startActivity(intent);
+                ChatManager.MODE = ChatManager.MODE_SERVER;
+            }
+            else if(v.getId() == R.id.startListenBroadcastButton){
+                mBroadcastManager.listenBroadcast();
+            }
+            else if(v.getId() == R.id.startSendBroadcastButton){
                 mBroadcastManager.sendBroadcast("Test Hello!");
             }
-            else if(v.getId() == R.id.startServerButton){
-//                Intent intent = new Intent(context, ServerActivity.class);
-//                startActivity(intent);
-//                ChatManager.MODE = ChatManager.MODE_SERVER;
-                mBroadcastManager.listenBroadcast();
-            }else if(v.getId() == R.id.chatButton){
+            else if(v.getId() == R.id.chatButton){
                 Intent intent = new Intent(context,ChatActivity.class);
                 startActivity(intent);
-            }else if(v.getId() == R.id.clearChatButton){
+            }
+            else if(v.getId() == R.id.clearChatButton){
                 MyDbHelper myDbHelper = new MyDbHelper(context);
                 myDbHelper.clearDB();
+            }
+            else if(v.getId() == R.id.autoWifiButton){
+                mApManager.startAutoSwitchWifi();
             }
 
         }
     };
 
-    private void hotspotMode(){
-        if(mApManager.isWifiApEnabled()){
-            mApManager.setWifiApEnabled(null, false);
-        }
-        mApManager.setWifiApEnabled(wifiConfig, true);
+    public void setWifiStatus(String text){
+        wifiStatusTextView.setText(text);
     }
 
-    private void clientMode(){
-        mApManager.connectToAp(wifiConfig);
+    public void setBroadcastStatus(String text){
+        wifiStatusTextView.setText(text);
     }
 
-    public void setStatus(String text){
-        statusText.setText(text);
+    public void setSocketStatus(String text){
+        wifiStatusTextView.setText(text);
     }
 
-    public static void setIpAddress(InetAddress addr, int prefixLength, WifiConfiguration wifiConf)
-            throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
-            NoSuchMethodException, ClassNotFoundException, InstantiationException, InvocationTargetException {
-        Object linkProperties = getField(wifiConf, "linkProperties");
-        if(linkProperties == null)return;
-        Class laClass = Class.forName("android.net.LinkAddress");
-        Constructor laConstructor = laClass.getConstructor(new Class[]{InetAddress.class, int.class});
-        Object linkAddress = laConstructor.newInstance(addr, prefixLength);
 
-        ArrayList mLinkAddresses = (ArrayList)getDeclaredField(linkProperties, "mLinkAddresses");
-        mLinkAddresses.clear();
-        mLinkAddresses.add(linkAddress);
+
+    @Override
+    public void onWifiStatusChanged(String value) {
+        setWifiStatus(value);
     }
 
-    public static Object getField(Object obj, String name)
-            throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
-        Field f = obj.getClass().getField(name);
-        Object out = f.get(obj);
-        return out;
+    @Override
+    public void onBroadcastStatusChanged(String value) {
+        setBroadcastStatus(value);
     }
 
-    public static Object getDeclaredField(Object obj, String name)
-            throws SecurityException, NoSuchFieldException,
-            IllegalArgumentException, IllegalAccessException {
-        Field f = obj.getClass().getDeclaredField(name);
-        f.setAccessible(true);
-        Object out = f.get(obj);
-        return out;
+    @Override
+    public void onSocketStatusChanged(String value) {
+        setSocketStatus(value);
     }
-
 }
