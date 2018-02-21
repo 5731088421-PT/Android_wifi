@@ -10,8 +10,10 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
@@ -29,12 +31,16 @@ public class ApManager {
     final WifiManager mWifiManager;
     final WifiConfiguration mWifiConfig;
 
+    BroadcastReceiver wifiReceiver;
+    BroadcastReceiver wifiApReceiver;
+    BroadcastReceiver connectivityReceiver;
+
+
     private Timer wifiTimer = new Timer();
     private Boolean isInHotspotMode = false;
     ResponseReceivedListener responseReceivedListener;
 
     private Context context;
-
 
     ApManager(Context context) {
         this.context = context;
@@ -47,18 +53,71 @@ public class ApManager {
         mWifiConfig.allowedKeyManagement.set(4);
     }
 
-    void hotspotMode(){
-        if(isWifiApEnabled()){
-            if(setWifiApEnabled(null, false)) {
-                responseReceivedListener.onWifiStatusChanged("Hotspot disabled");
+    void initReceiver(){
+        wifiReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                switch (intent.getExtras().getInt(WifiManager.EXTRA_WIFI_STATE)){
+                    case WifiManager.WIFI_STATE_ENABLING:
+                        responseReceivedListener.onWifiStatusChanged("Wifi Enabling...");
+                        return;
+                    case WifiManager.WIFI_STATE_ENABLED:
+                        connectToAp(mWifiConfig);
+                        responseReceivedListener.onWifiStatusChanged("Wifi Enabled");
+                        return;
+                    case WifiManager.WIFI_STATE_DISABLING:
+                        responseReceivedListener.onWifiStatusChanged("Wifi Disabling...");
+                        return;
+                    case WifiManager.WIFI_STATE_DISABLED:
+                        responseReceivedListener.onWifiStatusChanged("Wifi Disabled");
+                        return;
+                }
             }
+        };
+
+        wifiApReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                switch (intent.getExtras().getInt("wifi_state")){
+                    case 11:
+                        responseReceivedListener.onWifiStatusChanged("Hotspot Disabled");
+                        return;
+                    case 13:
+                        responseReceivedListener.onWifiStatusChanged("Hotspot Enabled");
+                        return;
+                    case 14:
+                        responseReceivedListener.onWifiStatusChanged("Hotspot Failed");
+                        return;
+                }
+            }
+        };
+
+        connectivityReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Boolean status = intent.getExtras().getBoolean(ConnectivityManager.EXTRA_NO_CONNECTIVITY);
+                if(status){
+                    responseReceivedListener.onWifiStatusChanged("Connecting...");
+                } else {
+                    responseReceivedListener.onWifiStatusChanged("Connected");
+                }
+            }
+        };
+    }
+
+    void hotspotMode(){
+        responseReceivedListener.onWifiStatusChanged("Hotspot Mode");
+
+        if(isWifiApEnabled()){
+            setWifiApEnabled(null, false);
         }
-        if(setWifiApEnabled(mWifiConfig, true)){
-            responseReceivedListener.onWifiStatusChanged("Hotspot Started");
-        }
+
+        setWifiApEnabled(mWifiConfig, true);
     }
 
     void clientMode(){
+        responseReceivedListener.onWifiStatusChanged("Client Mode");
+
         if(mWifiManager.isWifiEnabled()){
             connectToAp(mWifiConfig);
         } else {
@@ -67,6 +126,7 @@ public class ApManager {
     }
 
     void startAutoSwitchWifi() {
+        responseReceivedListener.onWifiStatusChanged("Auto Mode");
         TimerTask doAsynchronousTask;
         final Handler handler = new Handler();
 
