@@ -1,13 +1,12 @@
+/**
+ * Created by NOT on 2/15/18.
+ */
+
 package com.example.android_wifi;
 
 import android.content.Context;
 
 import java.util.UUID;
-
-
-/**
- * Created by NOT on 2/15/18.
- */
 
 public class BeaconData {
 

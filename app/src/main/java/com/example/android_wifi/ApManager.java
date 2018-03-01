@@ -25,8 +25,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.provider.Settings;
 import android.util.Log;
-
-
+import android.widget.Toast;
 
 public class ApManager {
 
@@ -37,10 +36,10 @@ public class ApManager {
     BroadcastReceiver wifiApReceiver;
     BroadcastReceiver connectivityReceiver;
 
-
+    Boolean isAutoRun = false;
     private Timer wifiTimer = new Timer();
     private Boolean isInHotspotMode = false;
-    ResponseReceivedListener responseReceivedListener;
+//    ResponseReceivedListener responseReceivedListener;
 
     private Context context;
 
@@ -61,17 +60,17 @@ public class ApManager {
             public void onReceive(Context context, Intent intent) {
                 switch (intent.getExtras().getInt(WifiManager.EXTRA_WIFI_STATE)){
                     case WifiManager.WIFI_STATE_ENABLING:
-                        responseReceivedListener.onWifiStatusChanged("Wifi Enabling...");
+//                        responseReceivedListener.onWifiStatusChanged("Wifi Enabling...");
                         return;
                     case WifiManager.WIFI_STATE_ENABLED:
                         connectToAp(mWifiConfig);
-                        responseReceivedListener.onWifiStatusChanged("Wifi Enabled");
+//                        responseReceivedListener.onWifiStatusChanged("Wifi Enabled");
                         return;
                     case WifiManager.WIFI_STATE_DISABLING:
-                        responseReceivedListener.onWifiStatusChanged("Wifi Disabling...");
+//                        responseReceivedListener.onWifiStatusChanged("Wifi Disabling...");
                         return;
                     case WifiManager.WIFI_STATE_DISABLED:
-                        responseReceivedListener.onWifiStatusChanged("Wifi Disabled");
+//                        responseReceivedListener.onWifiStatusChanged("Wifi Disabled");
                         return;
                 }
             }
@@ -82,13 +81,13 @@ public class ApManager {
             public void onReceive(Context context, Intent intent) {
                 switch (intent.getExtras().getInt("wifi_state")){
                     case 11:
-                        responseReceivedListener.onWifiStatusChanged("Hotspot Disabled");
+//                        responseReceivedListener.onWifiStatusChanged("Hotspot Disabled");
                         return;
                     case 13:
-                        responseReceivedListener.onWifiStatusChanged("Hotspot Enabled");
+//                        responseReceivedListener.onWifiStatusChanged("Hotspot Enabled");
                         return;
                     case 14:
-                        responseReceivedListener.onWifiStatusChanged("Hotspot Failed");
+//                        responseReceivedListener.onWifiStatusChanged("Hotspot Failed");
                         return;
                 }
             }
@@ -99,16 +98,16 @@ public class ApManager {
             public void onReceive(Context context, Intent intent) {
                 Boolean status = intent.getExtras().getBoolean(ConnectivityManager.EXTRA_NO_CONNECTIVITY);
                 if(status){
-                    responseReceivedListener.onWifiStatusChanged("Connecting...");
+//                    responseReceivedListener.onWifiStatusChanged("Connecting...");
                 } else {
-                    responseReceivedListener.onWifiStatusChanged("Connected");
+//                    responseReceivedListener.onWifiStatusChanged("Connected");
                 }
             }
         };
     }
 
     void hotspotMode(){
-        responseReceivedListener.onWifiStatusChanged("Hotspot Mode");
+//        responseReceivedListener.onWifiStatusChanged("Hotspot Mode");
 
         if(isWifiApEnabled()){
             setWifiApEnabled(null, false);
@@ -118,7 +117,7 @@ public class ApManager {
     }
 
     void clientMode(){
-        responseReceivedListener.onWifiStatusChanged("Client Mode");
+//        responseReceivedListener.onWifiStatusChanged("Client Mode");
 
         if(mWifiManager.isWifiEnabled()){
             connectToAp(mWifiConfig);
@@ -128,7 +127,7 @@ public class ApManager {
     }
 
     void startAutoSwitchWifi() {
-        responseReceivedListener.onWifiStatusChanged("Auto Mode");
+//        responseReceivedListener.onWifiStatusChanged("Auto Mode");
         TimerTask doAsynchronousTask;
         final Handler handler = new Handler();
 
@@ -143,11 +142,13 @@ public class ApManager {
                         else{
                             hotspotMode();
                         }
+                        Toast.makeText(context,"running",Toast.LENGTH_LONG).show();
                     }
                 });
             }
         };
         wifiTimer.schedule(doAsynchronousTask, 0,getWifiInterval()); //put the time you want
+        isAutoRun = true;
     }
 
     private long getWifiInterval(){
@@ -156,6 +157,7 @@ public class ApManager {
 
     void stopAutoSwitchWifi() {
         wifiTimer.cancel();
+        isAutoRun = false;
     }
 
     void turnWifiOn(){

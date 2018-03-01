@@ -28,6 +28,9 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
     Button autoBroadcastButton;
     Button chatButton;
     Button clearChatButton;
+    Button startServiceButton;
+    Button stopServiceButton;
+
 
     TextView wifiStatusTextView;
     TextView broadcastStatusTextView;
@@ -45,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
         context = getApplicationContext();
         mApManager = new ApManager(this);
         mApManager.showWritePermissionSettings(false);
-        mApManager.responseReceivedListener = this;
+//        mApManager.responseReceivedListener = this;
         mApManager.initReceiver();
 
         registerReceiver(mApManager.wifiReceiver,new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
@@ -92,6 +95,10 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
         chatButton.setOnClickListener(buttonListenner);
         clearChatButton = (Button) findViewById(R.id.clearChatButton);
         clearChatButton.setOnClickListener(buttonListenner);
+        startServiceButton = (Button) findViewById(R.id.startService);
+        startServiceButton.setOnClickListener(buttonListenner);
+        stopServiceButton = (Button) findViewById(R.id.stopService);
+        stopServiceButton.setOnClickListener(buttonListenner);
 
         wifiStatusTextView = (TextView) findViewById(R.id.wifiStatus);
         broadcastStatusTextView = (TextView) findViewById(R.id.broadcastStatus);
@@ -108,7 +115,11 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
                 mApManager.hotspotMode();
             }
             else if(v.getId() == R.id.autoWifiButton){
-                mApManager.startAutoSwitchWifi();
+                if(mApManager.isAutoRun){
+                    mApManager.stopAutoSwitchWifi();
+                } else {
+                    mApManager.startAutoSwitchWifi();
+                }
             }
             else if(v.getId() == R.id.startClientButton){
 //                Intent intent = new Intent(context, ClientActivity.class);
@@ -132,7 +143,12 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
                 mBroadcastManager.sendBroadcast("Test Hello!");
             }
             else if(v.getId() == R.id.autoBroadcastButton){
-                mBroadcastManager.startAutoBroadcast();
+                if(mBroadcastManager.isAutoRun){
+                    mBroadcastManager.stopAutoBroadcast();
+                }
+                else{
+                    mBroadcastManager.startAutoBroadcast();
+                }
             }
             else if(v.getId() == R.id.chatButton){
                 Intent intent = new Intent(context,LoginActivity.class);
@@ -142,7 +158,14 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
                 MyDbHelper myDbHelper = new MyDbHelper(context);
                 myDbHelper.clearDB();
             }
-
+            else if(v.getId() == R.id.startService){
+                Intent intent = new Intent(getApplicationContext(), BackgroundService.class);
+                startService(intent);
+            }
+            else if(v.getId() == R.id.stopService){
+                Intent intent = new Intent(getApplicationContext(), BackgroundService.class);
+                stopService(intent);
+            }
         }
     };
 

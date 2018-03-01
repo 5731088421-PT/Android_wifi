@@ -24,8 +24,11 @@ import static android.content.ContentValues.TAG;
 class BroadcastManager {
 
 
-    final int BROADCASTPORT = 1234;
+    private final int BROADCASTPORT = 1234;
     private Timer timer = new Timer();
+
+    Boolean isAutoRun = false;
+
     ResponseReceivedListener responseReceivedListener;
 
     // Send
@@ -36,7 +39,7 @@ class BroadcastManager {
         doAsynchronousTask = new TimerTask() {
             @Override
             public void run() {
-                handler.post(new Runnable() {
+                handler.post(   new Runnable() {
                     public void run() {
                         sendBroadcast("Hello from wifiTimer!");
                     }
@@ -45,10 +48,12 @@ class BroadcastManager {
         };
 
         timer.schedule(doAsynchronousTask, 0,getBroadCastInterval()); //put the time you want
+        isAutoRun = true;
     }
 
     void stopAutoBroadcast(){
         timer.cancel();
+        isAutoRun = false;
     }
 
     private long getBroadCastInterval(){
@@ -77,7 +82,7 @@ class BroadcastManager {
 
         } catch (IOException e) {
             Log.e(TAG, "IOException: " + e.getMessage());
-            responseReceivedListener.onBroadcastStatusChanged("Broadcast Error");
+            responseReceivedListener.onBroadcastStatusChanged("Send Broadcast Error" + e.getMessage());
         }
     }
 
@@ -134,11 +139,10 @@ class BroadcastManager {
     }
 
     // Listen
-
     void listenBroadcast(){
         Thread mThread = new Thread(new BroadcastListenerThread());
-        mThread.start();
         responseReceivedListener.onBroadcastStatusChanged("Listening");
+        mThread.start();
     }
 
     class BroadcastListenerThread implements Runnable {
@@ -165,7 +169,7 @@ class BroadcastManager {
 
             } catch (IOException ex) {
                 Log.i(TAG, "Oops" + ex.getMessage());
-                responseReceivedListener.onBroadcastStatusChanged("Receive Error!");
+                responseReceivedListener.onBroadcastStatusChanged("Broadcast Listening Error!" + ex.getMessage());
             }
         }
     }
