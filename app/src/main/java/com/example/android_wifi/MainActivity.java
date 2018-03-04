@@ -31,11 +31,9 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
     Button startServiceButton;
     Button stopServiceButton;
 
-
     TextView wifiStatusTextView;
     TextView broadcastStatusTextView;
     TextView socketStatusTextView;
-
 
     Context context;
 
@@ -46,27 +44,12 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
         context = getApplicationContext();
-        mApManager = new ApManager(this);
-        mApManager.showWritePermissionSettings(false);
-//        mApManager.responseReceivedListener = this;
-        mApManager.initReceiver();
-
-        registerReceiver(mApManager.wifiReceiver,new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
-        registerReceiver(mApManager.connectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-        registerReceiver(mApManager.wifiApReceiver, new IntentFilter("android.net.wifi.WIFI_AP_STATE_CHANGED"));
-
-        mBroadcastManager = new BroadcastManager();
-        mBroadcastManager.responseReceivedListener = this;
-
         bindUI();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(mApManager.wifiReceiver);
-        unregisterReceiver(mApManager.connectivityReceiver);
-        unregisterReceiver(mApManager.wifiApReceiver);
     }
 
     private void bindUI(){

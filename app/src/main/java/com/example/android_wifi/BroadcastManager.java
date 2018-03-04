@@ -4,9 +4,12 @@
 
 package com.example.android_wifi;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.StrictMode;
 import android.util.Log;
+import android.widget.Toast;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -23,17 +26,21 @@ import static android.content.ContentValues.TAG;
 
 class BroadcastManager {
 
-
     private final int BROADCASTPORT = 1234;
     private Timer timer = new Timer();
+    private Context context;
 
     Boolean isAutoRun = false;
 
-    ResponseReceivedListener responseReceivedListener;
+//    ResponseReceivedListener responseReceivedListener;
+
+    public BroadcastManager(Context context){
+        this.context = context;
+    }
 
     // Send
     void startAutoBroadcast() {
-        responseReceivedListener.onBroadcastStatusChanged("Auto Mode");
+//        responseReceivedListener.onBroadcastStatusChanged("Auto Mode");
         TimerTask doAsynchronousTask;
         final Handler handler = new Handler();
         doAsynchronousTask = new TimerTask() {
@@ -61,7 +68,7 @@ class BroadcastManager {
     }
 
     void sendBroadcast(String messageStr) {
-        responseReceivedListener.onBroadcastStatusChanged("Broadcasting");
+//        responseReceivedListener.onBroadcastStatusChanged("Broadcasting");
 
         // Hack Prevent crash (sending should be done using an async task)
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -75,14 +82,14 @@ class BroadcastManager {
             if(broadcastAddr != null){
                 DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, broadcastAddr, BROADCASTPORT);
                 socket.send(sendPacket);
-                responseReceivedListener.onBroadcastStatusChanged("Broadcast to " + broadcastAddr.getHostAddress());
+//                responseReceivedListener.onBroadcastStatusChanged("Broadcast to " + broadcastAddr.getHostAddress());
                 System.out.println(getClass().getName() + "Broadcast packet sent to: " + broadcastAddr.getHostAddress());
             }
-            responseReceivedListener.onBroadcastStatusChanged("Error can't find broadcast address");
+//            responseReceivedListener.onBroadcastStatusChanged("Error can't find broadcast address");
 
         } catch (IOException e) {
             Log.e(TAG, "IOException: " + e.getMessage());
-            responseReceivedListener.onBroadcastStatusChanged("Send Broadcast Error" + e.getMessage());
+//            responseReceivedListener.onBroadcastStatusChanged("Send Broadcast Error" + e.getMessage());
         }
     }
 
@@ -133,7 +140,7 @@ class BroadcastManager {
         } catch (SocketException e) {
             e.printStackTrace();
             Log.d(TAG, "getBroadcast" + e.getMessage());
-            responseReceivedListener.onBroadcastStatusChanged("Get broadcast ip error");
+//            responseReceivedListener.onBroadcastStatusChanged("Get broadcast ip error");
         }
         return null;
     }
@@ -141,8 +148,9 @@ class BroadcastManager {
     // Listen
     void listenBroadcast(){
         Thread mThread = new Thread(new BroadcastListenerThread());
-        responseReceivedListener.onBroadcastStatusChanged("Listening");
         mThread.start();
+
+//        responseReceivedListener.onBroadcastStatusChanged("Listening");
     }
 
     class BroadcastListenerThread implements Runnable {
@@ -161,15 +169,16 @@ class BroadcastManager {
                     socket.receive(packet);
 
                     //Packet received
+                    Toast.makeText(context,"Packet received from: " + packet.getAddress().getHostAddress(),Toast.LENGTH_LONG).show();
                     Log.i(TAG, "Packet received from: " + packet.getAddress().getHostAddress());
                     String data = new String(packet.getData()).trim();
-                    responseReceivedListener.onBroadcastStatusChanged("Receive " + data + " from " + packet.getAddress().getHostAddress());
+//                    responseReceivedListener.onBroadcastStatusChanged("Receive " + data + " from " + packet.getAddress().getHostAddress());
                     Log.i(TAG, "Packet received; data: " + data);
                 }
 
             } catch (IOException ex) {
                 Log.i(TAG, "Oops" + ex.getMessage());
-                responseReceivedListener.onBroadcastStatusChanged("Broadcast Listening Error!" + ex.getMessage());
+//                responseReceivedListener.onBroadcastStatusChanged("Broadcast Listening Error!" + ex.getMessage());
             }
         }
     }
