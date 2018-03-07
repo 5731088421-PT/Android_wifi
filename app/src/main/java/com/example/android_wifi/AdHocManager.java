@@ -10,24 +10,36 @@ import android.net.wifi.WifiManager;
  * Created by NOT on 3/5/18.
  */
 
-public class AdhocManager {
+public class AdHocManager {
     private ApManager apManager;
     private BroadcastManager broadcastManager;
     private SocketManager socketManager;
 
-    private BroadcastReceiver wifiReceiver;
-    private BroadcastReceiver apReceiver;
-    private BroadcastReceiver connectivityReceiver;
+    BroadcastReceiver wifiReceiver;
+    BroadcastReceiver apReceiver;
+    BroadcastReceiver connectivityReceiver;
 
-    public AdhocManager(){
+    public AdHocManager(){
         apManager = new ApManager();
         initWifiStateReceiver();
 
         broadcastManager = new BroadcastManager();
+        broadcastManager.listenBroadcast();
+
         socketManager = new SocketManager();
     }
 
-    void initWifiStateReceiver(){
+    public void startAdHoc(){
+        apManager.startAutoSwitchWifi();
+//        broadcastManager.startAutoBroadcast();
+    }
+
+    public void stopAdhoc(){
+        apManager.stopAutoSwitchWifi();
+        broadcastManager.stopAutoBroadcast();
+    }
+
+    private void initWifiStateReceiver(){
         wifiReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -36,7 +48,7 @@ public class AdhocManager {
 //                        responseReceivedListener.onWifiStatusChanged("Wifi Enabling...");
                         return;
                     case WifiManager.WIFI_STATE_ENABLED:
-                        apManager.connectToAp(mWifiConfig);
+                        apManager.connectToAp(apManager.wifiConfig);
 //                        responseReceivedListener.onWifiStatusChanged("Wifi Enabled");
                         return;
                     case WifiManager.WIFI_STATE_DISABLING:
@@ -74,8 +86,10 @@ public class AdhocManager {
 //                    responseReceivedListener.onWifiStatusChanged("Connecting...");
                 } else {
 //                    responseReceivedListener.onWifiStatusChanged("Connected");
+                    broadcastManager.sendBroadcast("Send on connected!");
                 }
             }
         };
+
     }
 }

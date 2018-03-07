@@ -13,15 +13,14 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import java.sql.Timestamp;
 
 public class ChatActivity extends AppCompatActivity {
 
     private Context context;
-    private ChatManager chatManager;
+//    private ChatManager chatManager;
     private RecyclerView recyclerView;
     private CustomAdapter customAdapter;
-    private MyDbHelper dbHelper;
+    private DBManager dbHelper;
     private EditText editText;
     private ImageButton sendButton;
     private LinearLayoutManager llm;
@@ -52,7 +51,7 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-        dbHelper = new MyDbHelper(getApplicationContext());
+        dbHelper = new DBManager(getApplicationContext());
 //        dbHelper.addMockData();
 
         recyclerView = (RecyclerView) findViewById(R.id.messages);
@@ -70,22 +69,22 @@ public class ChatActivity extends AppCompatActivity {
                 llm.scrollToPosition(customAdapter.getItemCount()-1);
             }
         });
-        chatManager = new ChatManager(context, customAdapter);
-
-        if(ChatManager.MODE == ChatManager.MODE_SERVER){
-            chatManager.startServer();
-        }
-        else if(ChatManager.MODE == ChatManager.MODE_CLIENT){
-            chatManager.startClient();
-        }
+//        chatManager = new ChatManager(context, customAdapter);
+//
+//        if(ChatManager.MODE == ChatManager.MODE_SERVER){
+//            chatManager.startServer();
+//        }
+//        else if(ChatManager.MODE == ChatManager.MODE_CLIENT){
+//            chatManager.startClient();
+//        }
 
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        chatManager.stopClient();
-        chatManager.stopServer();
+//        chatManager.stopClient();
+//        chatManager.stopServer();
     }
 
     public void sendMessage(){
@@ -102,13 +101,13 @@ public class ChatActivity extends AppCompatActivity {
 //        Timestamp tsTemp = new Timestamp(time);
 //        String ts =  tsTemp.toString();
         String message = editText.getText().toString();
-        ChatMessage chatMessage = new ChatMessage(ChatManager.USERNAME, message, time+"");
+//        ChatMessage chatMessage = new ChatMessage(ChatManager.USERNAME, message, time+"");
 //        if(ChatManager.MODE == ChatManager.MODE_CLIENT){
 //            JSONArray jsonObject = chatMessage.toJSON();
 //            new ChatManager.SocketServerTask().execute(jsonObject);
 //        }
-        dbHelper.addMessage(chatMessage);
-        customAdapter.addNewDataToRecycler(chatMessage);
+//        dbHelper.addMessage(chatMessage);
+//        customAdapter.addNewDataToRecycler(chatMessage);
         scrollToBottom();
         editText.setText("");
     }

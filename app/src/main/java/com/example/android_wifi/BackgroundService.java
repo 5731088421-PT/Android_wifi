@@ -1,4 +1,4 @@
-/**
+/*
  * Created by NOT on 3/1/18.
  */
 
@@ -22,36 +22,30 @@ public class BackgroundService extends Service {
         }
     }
 
-    ApManager apManager;
-    BroadcastManager broadcastManager;
+    AdHocManager adHocManager;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        apManager = new ApManager(getApplicationContext());
-        broadcastManager = new BroadcastManager(getApplicationContext());
+        adHocManager = new AdHocManager();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        apManager.initReceiver();
-        registerReceiver(apManager.wifiReceiver,new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
-        registerReceiver(apManager.connectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-        registerReceiver(apManager.wifiApReceiver, new IntentFilter("android.net.wifi.WIFI_AP_STATE_CHANGED"));
-        apManager.startAutoSwitchWifi();
-        broadcastManager.listenBroadcast();
-        broadcastManager.startAutoBroadcast();
+        registerReceiver(adHocManager.wifiReceiver, new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
+        registerReceiver(adHocManager.connectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        registerReceiver(adHocManager.apReceiver, new IntentFilter("android.net.wifi.WIFI_AP_STATE_CHANGED"));
+        adHocManager.startAdHoc();
         return START_NOT_STICKY;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(apManager.wifiReceiver);
-        unregisterReceiver(apManager.connectivityReceiver);
-        unregisterReceiver(apManager.wifiApReceiver);
-        broadcastManager.stopAutoBroadcast();
-        apManager.stopAutoSwitchWifi();
+        adHocManager.stopAdhoc();
+        unregisterReceiver(adHocManager.wifiReceiver);
+        unregisterReceiver(adHocManager.connectivityReceiver);
+        unregisterReceiver(adHocManager.apReceiver);
     }
 
     @Nullable

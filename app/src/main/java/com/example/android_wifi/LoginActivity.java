@@ -57,7 +57,7 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        ChatManager.USERNAME = username;
+//        ChatManager.USERNAME = username;
         Intent intent = new Intent(
                 this, ChatActivity.class);
         startActivity(intent);

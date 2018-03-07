@@ -2,9 +2,6 @@ package com.example.android_wifi;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
-import android.net.wifi.WifiManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -98,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
                 mApManager.hotspotMode();
             }
             else if(v.getId() == R.id.autoWifiButton){
-                if(mApManager.isAutoRun){
+                if(mApManager.isAutoActive){
                     mApManager.stopAutoSwitchWifi();
                 } else {
                     mApManager.startAutoSwitchWifi();
@@ -107,13 +104,13 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
             else if(v.getId() == R.id.startClientButton){
 //                Intent intent = new Intent(context, ClientActivity.class);
 //                startActivity(intent);
-                ChatManager.MODE = ChatManager.MODE_CLIENT;
+//                ChatManager.MODE = ChatManager.MODE_CLIENT;
                 setSocketStatus("Client Selected");
             }
             else if(v.getId() == R.id.startServerButton) {
 //                Intent intent = new Intent(context, ServerActivity.class);
 //                startActivity(intent);
-                ChatManager.MODE = ChatManager.MODE_SERVER;
+//                ChatManager.MODE = ChatManager.MODE_SERVER;
                 setSocketStatus("Server Selected");
             }
             else if(v.getId() == R.id.autoSocketButton){
@@ -138,8 +135,8 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
                 startActivity(intent);
             }
             else if(v.getId() == R.id.clearChatButton){
-                MyDbHelper myDbHelper = new MyDbHelper(context);
-                myDbHelper.clearDB();
+                DBManager DBManager = new DBManager(context);
+                DBManager.clearDB();
             }
             else if(v.getId() == R.id.startService){
                 Intent intent = new Intent(getApplicationContext(), BackgroundService.class);

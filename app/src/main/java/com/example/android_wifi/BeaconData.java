@@ -20,5 +20,10 @@ public class BeaconData {
         return id;
     }
 
+    public Byte getByte(){
+
+        return null;
+    }
+
 
 }

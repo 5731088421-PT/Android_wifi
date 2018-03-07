@@ -11,11 +11,11 @@ import org.json.JSONArray;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
+/*
  * Created by NOT on 11/17/17.
  */
 
-public class MyDbHelper extends SQLiteOpenHelper {
+public class DBManager extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "chatLog";
     private static final int DB_VERSION = 1;
@@ -24,7 +24,7 @@ public class MyDbHelper extends SQLiteOpenHelper {
     public static final String COL_MESSAGE = "message";
     public static final String COL_SENDTIME = "sendtime";
 
-    public MyDbHelper(Context context) {
+    public DBManager(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
     }
 

@@ -6,6 +6,7 @@ package com.example.android_wifi;
 
 import android.content.Context;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.StrictMode;
 import android.util.Log;
 import android.widget.Toast;
@@ -34,8 +35,8 @@ class BroadcastManager {
 
 //    ResponseReceivedListener responseReceivedListener;
 
-    public BroadcastManager(Context context){
-        this.context = context;
+    public BroadcastManager(){
+        this.context = AppApplication.getInstance().getContext();
     }
 
     // Send
@@ -64,7 +65,7 @@ class BroadcastManager {
     }
 
     private long getBroadCastInterval(){
-        return  3000;
+        return  1000;
     }
 
     void sendBroadcast(String messageStr) {
@@ -129,12 +130,17 @@ class BroadcastManager {
         try {
             if(inetAddr != null){
                 temp = NetworkInterface.getByInetAddress(inetAddr);
-                List<InterfaceAddress> addresses = temp.getInterfaceAddresses();
 
-                for (InterfaceAddress inetAddress: addresses)
+                //null lasttime
 
-                    iAddr = inetAddress.getBroadcast();
-                Log.d(TAG, "iAddr=" + iAddr);
+                if(temp != null){
+                    List<InterfaceAddress> addresses = temp.getInterfaceAddresses();
+                    for (InterfaceAddress inetAddress: addresses)
+
+                        iAddr = inetAddress.getBroadcast();
+                    Log.d(TAG, "iAddr=" + iAddr);
+                }
+
                 return iAddr;
             }
         } catch (SocketException e) {
@@ -168,8 +174,20 @@ class BroadcastManager {
                     DatagramPacket packet = new DatagramPacket(recvBuf, recvBuf.length);
                     socket.receive(packet);
 
-                    //Packet received
-                    Toast.makeText(context,"Packet received from: " + packet.getAddress().getHostAddress(),Toast.LENGTH_LONG).show();
+                    String thisDeviceIp = getIpAddress().toString().substring(1,getIpAddress().toString().length());
+                    if(!thisDeviceIp.equals(packet.getAddress().getHostAddress())){
+                        final String text = packet.getAddress().getHostAddress();
+
+                        //Packet received
+                        Handler handler = new Handler(Looper.getMainLooper());
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context,"Packet received from: " + text,Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
+
                     Log.i(TAG, "Packet received from: " + packet.getAddress().getHostAddress());
                     String data = new String(packet.getData()).trim();
 //                    responseReceivedListener.onBroadcastStatusChanged("Receive " + data + " from " + packet.getAddress().getHostAddress());

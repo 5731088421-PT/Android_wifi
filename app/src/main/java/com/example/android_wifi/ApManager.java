@@ -8,10 +8,9 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import android.content.BroadcastReceiver;
+
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
@@ -25,105 +24,85 @@ enum WIFI_AP_STATE {
     WIFI_AP_STATE_DISABLING, WIFI_AP_STATE_DISABLED, WIFI_AP_STATE_ENABLING, WIFI_AP_STATE_ENABLED, WIFI_AP_STATE_FAILED;
 }
 
+enum WIFI_MODE{
+    CLIENT, HOTSPOT
+}
+
 class ApManager {
 
-    final WifiManager mWifiManager;
-    final WifiConfiguration mWifiConfig;
+    final WifiManager wifiManager;
+    final WifiConfiguration wifiConfig;
 
-    BroadcastReceiver wifiReceiver;
-    BroadcastReceiver wifiApReceiver;
-    BroadcastReceiver connectivityReceiver;
+    Boolean isAutoActive = false;
+    private WIFI_MODE currentMode;
 
-    Boolean isAutoRun = false;
-    private Timer wifiTimer = new Timer();
-    private Boolean isInHotspotMode = false;
     private Context context;
+    private Timer wifiTimer = new Timer();
 
-    ApManager(Context context) {
-        this.context = context;
-        mWifiManager = (WifiManager) this.context.getSystemService(Context.WIFI_SERVICE);
-
-        mWifiConfig = new WifiConfiguration();
-        mWifiConfig.SSID = "MANET";
-//        mWifiConfig.allowedProtocols.set(WifiConfiguration.Protocol.);
-//        mWifiConfig.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN);
-//        mWifiConfig.preSharedKey = "123456789";
-//        mWifiConfig.allowedAuthAlgorithms.set(0);
-//        mWifiConfig.allowedKeyManagement.set(4);
+    ApManager() {
+        context = AppApplication.getInstance().getContext();
+        wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        wifiConfig = new WifiConfiguration();
+        wifiConfig.SSID = "MANET";
+        currentMode = Math.random() <= 0.5 ? WIFI_MODE.CLIENT : WIFI_MODE.HOTSPOT;
     }
 
-
-
     void hotspotMode(){
-//        responseReceivedListener.onWifiStatusChanged("Hotspot Mode");
-
         if(isWifiApEnabled()){
             setWifiApEnabled(null, false);
         }
-
-        setWifiApEnabled(mWifiConfig, true);
+        setWifiApEnabled(wifiConfig, true);
+        currentMode = WIFI_MODE.HOTSPOT;
     }
 
     void clientMode(){
-//        responseReceivedListener.onWifiStatusChanged("Client Mode");
-
-        if(mWifiManager.isWifiEnabled()){
-            connectToAp(mWifiConfig);
-        } else {
-            turnWifiOn();
+        if(isWifiApEnabled()){
+            setWifiApEnabled(null, false);
         }
+        if(!wifiManager.isWifiEnabled()){
+            wifiManager.setWifiEnabled(true);
+        }
+        currentMode = WIFI_MODE.CLIENT;
+    }
+
+    private long getWifiInterval(){
+        return 10000 + (int)(Math.random()*15000);
     }
 
     void startAutoSwitchWifi() {
-//        responseReceivedListener.onWifiStatusChanged("Auto Mode");
-        TimerTask doAsynchronousTask;
+        TimerTask timerTask;
         final Handler handler = new Handler();
-
-        doAsynchronousTask = new TimerTask() {
+        timerTask = new TimerTask() {
             @Override
             public void run() {
                 handler.post(new Runnable() {
                     public void run() {
-                        if(isInHotspotMode){
+                        if(currentMode == WIFI_MODE.HOTSPOT){
                             clientMode();
                         }
                         else{
                             hotspotMode();
                         }
-                        Toast.makeText(context,"running",Toast.LENGTH_LONG).show();
+                        Toast.makeText(context,"Changing to mode = " + (currentMode == WIFI_MODE.HOTSPOT ? "Hotspot" : "Client"),Toast.LENGTH_SHORT).show();
                     }
                 });
             }
         };
-        wifiTimer.schedule(doAsynchronousTask, 0,getWifiInterval()); //put the time you want
-        isAutoRun = true;
-    }
-
-    private long getWifiInterval(){
-        return 15000;
+        wifiTimer.schedule(timerTask, 0,getWifiInterval());
+        isAutoActive = true;
     }
 
     void stopAutoSwitchWifi() {
         wifiTimer.cancel();
-        isAutoRun = false;
-    }
-
-    void turnWifiOn(){
-        if(isWifiApEnabled()){
-            setWifiApEnabled(null, false);
-        }
-        if(!mWifiManager.isWifiEnabled()){
-            mWifiManager.setWifiEnabled(true);
-        }
+        wifiManager.setWifiEnabled(false);
+        isAutoActive = false;
     }
 
     void connectToAp(WifiConfiguration config){
 
         WifiConfiguration wifiConfiguration = new WifiConfiguration();
-
         wifiConfiguration.SSID = "\"" + config.SSID + "\"";
 //        wifiConfiguration.preSharedKey = "\"" + config.preSharedKey + "\"";
-
         //Config for open network
         wifiConfiguration.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
         wifiConfiguration.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
@@ -136,18 +115,18 @@ class ApManager {
         wifiConfiguration.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
         wifiConfiguration.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
 
-        if (mWifiManager.isWifiEnabled()){
-            List<WifiConfiguration> list = mWifiManager.getConfiguredNetworks();
+        if (wifiManager.isWifiEnabled()){
+            List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
 
             int networkId = findConfiguredNetworkId(list, config);
 
             if(networkId == -1){
-                networkId = mWifiManager.addNetwork(wifiConfiguration);
+                networkId = wifiManager.addNetwork(wifiConfiguration);
             }
             if(networkId >= 0){
-                mWifiManager.disconnect();
-                mWifiManager.enableNetwork(networkId, true);
-                mWifiManager.reconnect();
+                wifiManager.disconnect();
+                wifiManager.enableNetwork(networkId, true);
+                wifiManager.reconnect();
             }
         }
 
@@ -178,14 +157,11 @@ class ApManager {
     private void setWifiApEnabled(WifiConfiguration wifiConfig, boolean enabled) {
         try {
             if (enabled) { // disable WiFi in any case
-                mWifiManager.setWifiEnabled(false);
+                wifiManager.setWifiEnabled(false);
             }
+            Method method = wifiManager.getClass().getMethod("setWifiApEnabled", WifiConfiguration.class, boolean.class);
+            Boolean success = (Boolean) method.invoke(wifiManager, wifiConfig, enabled);
 
-            Method method = mWifiManager.getClass().getMethod("setWifiApEnabled", WifiConfiguration.class, boolean.class);
-            Boolean success = (Boolean) method.invoke(mWifiManager, wifiConfig, enabled);
-            if(success){
-                isInHotspotMode = enabled;
-            }
         } catch (Exception e) {
             Log.e(this.getClass().toString(), "", e);
         }
@@ -193,15 +169,14 @@ class ApManager {
 
     private WIFI_AP_STATE getWifiApState() {
         try {
-            Method method = mWifiManager.getClass().getMethod("getWifiApState");
+            Method method = wifiManager.getClass().getMethod("getWifiApState");
 
-            int tmp = ((Integer) method.invoke(mWifiManager));
+            int tmp = ((Integer) method.invoke(wifiManager));
 
             // Fix for Android 4
             if (tmp >= 10) {
                 tmp = tmp - 10;
             }
-
             return WIFI_AP_STATE.class.getEnumConstants()[tmp];
         } catch (Exception e) {
             Log.e(this.getClass().toString(), "", e);

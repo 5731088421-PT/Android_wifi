@@ -49,15 +49,15 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
 
 
         holder.userNameTextView.setText(message.username +" | " + time);
-        if(ChatManager.USERNAME.equals(message.username)){
-            holder.layout.setGravity(Gravity.RIGHT);
-            holder.userNameTextView.setVisibility(View.GONE);
+//        if(ChatManager.USERNAME.equals(message.username)){
+//            holder.layout.setGravity(Gravity.RIGHT);
+//            holder.userNameTextView.setVisibility(View.GONE);
 //            holder.messageTextView.getBackground();
-        }else{
-            holder.layout.setGravity(Gravity.LEFT);
-            holder.userNameTextView.setVisibility(View.VISIBLE);
+//        }else{
+//            holder.layout.setGravity(Gravity.LEFT);
+//            holder.userNameTextView.setVisibility(View.VISIBLE);
 //            holder.messageTextView.setBackground(context.getDrawable(R.drawable.rounded_corner));
-        }
+//        }
     }
 
     @Override

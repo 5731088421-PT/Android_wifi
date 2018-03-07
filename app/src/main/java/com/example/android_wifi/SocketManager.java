@@ -1,20 +1,20 @@
 package com.example.android_wifi;
+/*
+ * Created by NOT on 3/5/18.
+ */
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.os.AsyncTask;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
-/**
- * Created by NOT on 3/5/18.
- */
+
 
 public class SocketManager {
 
-    public static final int PORT = 8080;
+    public static final int SOCKETPORT = 8080;
 
     class startServer{
 
@@ -33,7 +33,7 @@ public class SocketManager {
                     DatagramSocket socket = null;
 
                     try{
-                        socket = new DatagramSocket(PORT);
+                        socket = new DatagramSocket(SOCKETPORT);
                         while (isActive){
                             socket.receive(packet);
 
@@ -75,7 +75,7 @@ public class SocketManager {
                     DatagramSocket socket = null;
                     try{
                         socket = new DatagramSocket();
-                        DatagramPacket packet = new DatagramPacket(message.getBytes(),message.length(),address,PORT);
+                        DatagramPacket packet = new DatagramPacket(message.getBytes(),message.length(),address, SOCKETPORT);
                         socket.send(packet);
                     }
                     catch (Exception e){
