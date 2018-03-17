@@ -17,13 +17,13 @@ import android.widget.TextView;
 public class ChatActivity extends AppCompatActivity {
 
     private Context context;
-//    private ChatManager chatManager;
     private RecyclerView recyclerView;
     private CustomAdapter customAdapter;
     private DBManager dbHelper;
     private EditText editText;
     private ImageButton sendButton;
     private LinearLayoutManager llm;
+    private ChatManager chatManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +51,7 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-        dbHelper = new DBManager(getApplicationContext());
+        dbHelper = new DBManager();
 //        dbHelper.addMockData();
 
         recyclerView = (RecyclerView) findViewById(R.id.messages);

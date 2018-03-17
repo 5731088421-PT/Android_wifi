@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
                 mBroadcastManager.listenBroadcast();
             }
             else if(v.getId() == R.id.startSendBroadcastButton){
-                mBroadcastManager.sendBroadcast("Test Hello!");
+                mBroadcastManager.sendBroadcast("Test Hello!".getBytes());
             }
             else if(v.getId() == R.id.autoBroadcastButton){
                 if(mBroadcastManager.isAutoRun){
@@ -131,11 +131,11 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
                 }
             }
             else if(v.getId() == R.id.chatButton){
-                Intent intent = new Intent(context,LoginActivity.class);
+                Intent intent = new Intent(context,ChatActivity.class);
                 startActivity(intent);
             }
             else if(v.getId() == R.id.clearChatButton){
-                DBManager DBManager = new DBManager(context);
+                DBManager DBManager = new DBManager();
                 DBManager.clearDB();
             }
             else if(v.getId() == R.id.startService){

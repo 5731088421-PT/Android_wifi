@@ -1,8 +1,8 @@
-package com.example.android_wifi;
-
 /*
  * Created by NOT on 3/5/18.
  */
+
+package com.example.android_wifi;
 
 import android.app.Application;
 import android.content.Context;

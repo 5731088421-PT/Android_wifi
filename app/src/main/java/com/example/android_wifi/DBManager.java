@@ -19,13 +19,14 @@ public class DBManager extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "chatLog";
     private static final int DB_VERSION = 1;
-    public static final String TABLE_NAME = "message";
-    public static final String COL_USERNAME = "username";
-    public static final String COL_MESSAGE = "message";
-    public static final String COL_SENDTIME = "sendtime";
+    private static final String TABLE_NAME = "message";
+    private static final String COL_USERNAME = "username";
+    private static final String COL_MESSAGE = "message";
+    private static final String COL_SENDTIME = "sendtime";
 
-    public DBManager(Context context) {
-        super(context, DB_NAME, null, DB_VERSION);
+
+    DBManager() {
+        super(AppApplication.getInstance(), DB_NAME, null, DB_VERSION);
     }
 
     @Override
@@ -40,6 +41,8 @@ public class DBManager extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
         onCreate(db);
     }
+
+
 
     public boolean findMessage(ChatMessage message){
 

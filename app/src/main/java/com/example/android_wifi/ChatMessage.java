@@ -7,7 +7,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
+/*
  * Created by NOT on 11/17/17.
  */
 
@@ -15,7 +15,6 @@ public class ChatMessage {
     private static final String USERNAME = "USERNAME";
     private static final String MESSAGE = "MESSAGE";
     private static final String TIMESTAMP = "TIMESTAMP";
-    private static final String ARRAYNAME = "MESSAGES";
 
     public String username;
     public String message;

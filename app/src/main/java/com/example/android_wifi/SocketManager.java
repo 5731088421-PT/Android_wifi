@@ -6,17 +6,43 @@ package com.example.android_wifi;
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
 
-
 public class SocketManager {
 
-    public static final int SOCKETPORT = 8080;
+    private static final String HOTSPOT_ADDR = "192.168.45.1";
+    private static final int SOCKET_PORT = 8080;
 
-    class startServer{
+    private UDPServer server;
+    private UDPClient client;
+
+    public SocketManager(){
+        server = new UDPServer();
+        client = new UDPClient();
+    }
+
+    void startServer(){
+        server.startServer();
+    }
+
+    void stopServer(){
+        server.stopServer();
+    }
+
+    void sendBeaconToHotspot(BeaconData beacon){
+        client.send(beacon, HOTSPOT_ADDR, SOCKET_PORT);
+    }
+
+    class UDPServer{
 
         AsyncTask<Void,Void,Void> asyncTask;
         private boolean isActive = true;
@@ -28,14 +54,18 @@ public class SocketManager {
 
                 @Override
                 protected Void doInBackground(Void... voids) {
-                    byte[] message = new byte[4096];
-                    DatagramPacket packet = new DatagramPacket(message,message.length);
+                    byte[] recvBuf = new byte[5000];
+                    DatagramPacket packet = new DatagramPacket(recvBuf, recvBuf.length);
                     DatagramSocket socket = null;
 
                     try{
-                        socket = new DatagramSocket(SOCKETPORT);
+                        socket = new DatagramSocket(SOCKET_PORT);
                         while (isActive){
                             socket.receive(packet);
+                            int byteCount = packet.getLength();
+                            ByteArrayInputStream byteStream = new ByteArrayInputStream(recvBuf);
+                            ObjectInputStream is = new ObjectInputStream(new BufferedInputStream(byteStream));
+                            Object o = is.readObject();
 
                         }
                     }
@@ -51,14 +81,11 @@ public class SocketManager {
                     return null;
                 }
             };
-
             asyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
         }
         void stopServer(){
             isActive = false;
         }
-
     }
 
     class UDPClient{
@@ -68,14 +95,25 @@ public class SocketManager {
         InetAddress address;
 
         @SuppressLint("StaticFieldLeak")
-        public void startClient(){
+        public void send(final Object o, final String hostName, final int desPort){
             asyncTask = new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... voids) {
                     DatagramSocket socket = null;
                     try{
                         socket = new DatagramSocket();
-                        DatagramPacket packet = new DatagramPacket(message.getBytes(),message.length(),address, SOCKETPORT);
+
+                        InetAddress address = InetAddress.getByName(hostName);
+                        ByteArrayOutputStream byteStream = new ByteArrayOutputStream(5000);
+                        ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(byteStream));
+
+                        os.flush();
+                        os.writeObject(o);
+                        os.flush();
+
+                        byte[] sendBuf = byteStream.toByteArray();
+                        DatagramPacket packet = new DatagramPacket(sendBuf, sendBuf.length, address, desPort);
+                        int byteCount = packet.getLength();
                         socket.send(packet);
                     }
                     catch (Exception e){

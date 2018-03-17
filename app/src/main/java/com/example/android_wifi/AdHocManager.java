@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 
-/**
+/*
  * Created by NOT on 3/5/18.
  */
 
@@ -86,7 +86,7 @@ public class AdHocManager {
 //                    responseReceivedListener.onWifiStatusChanged("Connecting...");
                 } else {
 //                    responseReceivedListener.onWifiStatusChanged("Connected");
-                    broadcastManager.sendBroadcast("Send on connected!");
+                    broadcastManager.sendBroadcast("Send on connected!".getBytes());
                 }
             }
         };

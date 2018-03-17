@@ -1,4 +1,4 @@
-/**
+/*
  * Created by NOT on 10/25/17.
  */
 
@@ -95,6 +95,7 @@ class ApManager {
     void stopAutoSwitchWifi() {
         wifiTimer.cancel();
         wifiManager.setWifiEnabled(false);
+        setWifiApEnabled(null, false);
         isAutoActive = false;
     }
 

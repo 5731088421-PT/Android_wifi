@@ -13,7 +13,6 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
-
 public class BackgroundService extends Service {
 
     public class LocalBinder extends Binder{
