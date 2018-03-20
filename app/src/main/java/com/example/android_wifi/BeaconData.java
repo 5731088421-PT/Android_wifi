@@ -5,13 +5,18 @@
 package com.example.android_wifi;
 
 import com.google.common.hash.BloomFilter;
+import com.google.common.hash.Funnels;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.charset.Charset;
+import java.util.List;
 import java.util.UUID;
 
+
+//todo
 public class BeaconData implements Serializable {
 
     private String id;
@@ -19,10 +24,10 @@ public class BeaconData implements Serializable {
     private BloomFilter<String> mBloomfilter;
 
 
-    public BeaconData(BloomFilter<String> bloomFilter){
+    BeaconData(boolean isRescuer, BloomFilter<String> bloomfilter){
+        this.isRescuer = isRescuer;
+        this.mBloomfilter = bloomfilter;
         id = UUID.randomUUID().toString();
-        isRescuer = false;
-        mBloomfilter = bloomFilter;
     }
 
     public String getId() {
@@ -37,7 +42,7 @@ public class BeaconData implements Serializable {
         return id.getBytes();
     }
 
-    public BloomFilter<String> getBoomfilter(){
+    BloomFilter<String> getBloomfilter(){
         return mBloomfilter;
     }
 

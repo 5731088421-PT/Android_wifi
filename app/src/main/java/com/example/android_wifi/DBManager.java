@@ -1,7 +1,10 @@
+/*
+ * Created by NOT on 11/17/17.
+ */
+
 package com.example.android_wifi;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -11,11 +14,11 @@ import org.json.JSONArray;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
- * Created by NOT on 11/17/17.
- */
+
 
 public class DBManager extends SQLiteOpenHelper {
+
+    private static DBManager instance;
 
     private static final String DB_NAME = "chatLog";
     private static final int DB_VERSION = 1;
@@ -24,9 +27,15 @@ public class DBManager extends SQLiteOpenHelper {
     private static final String COL_MESSAGE = "message";
     private static final String COL_SENDTIME = "sendtime";
 
-
-    DBManager() {
+    private DBManager() {
         super(AppApplication.getInstance(), DB_NAME, null, DB_VERSION);
+    }
+
+    static DBManager getInstance(){
+        if(instance == null){
+            instance = new DBManager();
+        }
+        return instance;
     }
 
     @Override
@@ -42,9 +51,7 @@ public class DBManager extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-
-
-    public boolean findMessage(ChatMessage message){
+    boolean findMessage(ChatMessage message){
 
         SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
         Cursor cursor = sqLiteDatabase.query
@@ -54,7 +61,7 @@ public class DBManager extends SQLiteOpenHelper {
             cursor.moveToFirst();
         }
 
-        while(!cursor.isAfterLast()) {
+        while(!(cursor != null && cursor.isAfterLast())) {
             String cUsername = cursor.getString(1);
             String cMessage = cursor.getString(2);
 
@@ -107,7 +114,7 @@ public class DBManager extends SQLiteOpenHelper {
         addMessage(chatMessage2);
     }
 
-    public List<ChatMessage> fetchChatMessageList(){
+    List<ChatMessage> fetchChatMessageList(){
         List<ChatMessage> messages = new ArrayList<>();
 
         SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
@@ -119,7 +126,7 @@ public class DBManager extends SQLiteOpenHelper {
             cursor.moveToFirst();
         }
 
-        while(!cursor.isAfterLast()) {
+        while(!(cursor != null && cursor.isAfterLast())) {
             ChatMessage chatMessage = new ChatMessage(
                     cursor.getString(1),
                     cursor.getString(2),

@@ -1,30 +1,28 @@
+/*
+ * Created by NOT on 11/17/17.
+ */
+
 package com.example.android_wifi;
 
 import android.content.Context;
 import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
-
-/**
- * Created by NOT on 11/17/17.
- */
 
 public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
 
     private List<ChatMessage> mMessages;
     private Context context;
 
-    public CustomAdapter(Context context, List<ChatMessage> messages){
+    CustomAdapter(Context context, List<ChatMessage> messages) {
         this.context = context;
         mMessages = messages;
     }
@@ -65,7 +63,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
         return mMessages.size();
     }
 
-    public void addNewDataToRecycler(ChatMessage message) {
+    void addNewDataToRecycler(ChatMessage message) {
         int i;
         for (i=0; i<mMessages.size(); i++) {
             if(Long.parseLong(message.timeStamp) < Long.parseLong(mMessages.get(i).timeStamp)){
@@ -80,20 +78,17 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
 
                 notifyDataSetChanged();
 //                ((ChatActivity) context).scrollToBottom();
-
-
             } // This is your code
         };
         mainHandler.post(myRunnable);
-
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView userNameTextView;
-        public TextView messageTextView;
-        public LinearLayout layout;
+    static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView userNameTextView;
+        TextView messageTextView;
+        LinearLayout layout;
 
-        public ViewHolder(View view) {
+        ViewHolder(View view) {
             super(view);
             layout = (LinearLayout) view.findViewById(R.id.bubbleLayout);
             userNameTextView = (TextView) view.findViewById(R.id.username);
@@ -101,6 +96,4 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
 
         }
     }
-
-
 }

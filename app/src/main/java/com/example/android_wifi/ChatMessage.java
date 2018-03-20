@@ -20,13 +20,13 @@ public class ChatMessage {
     public String message;
     public String timeStamp;
 
-    public ChatMessage(String username, String message, String timeStamp){
+    ChatMessage(String username, String message, String timeStamp){
         this.username = username;
         this.message = message;
         this.timeStamp = timeStamp;
     }
 
-    public JSONArray toJSON(){
+    JSONArray toJSON(){
         JSONObject jsonObject = new JSONObject();
         JSONArray array = new JSONArray();
         try {
@@ -58,5 +58,8 @@ public class ChatMessage {
         return chatMessage;
     }
 
+    String toBloomfilterString(){
+        return message+username+timeStamp;
+    }
 
 }

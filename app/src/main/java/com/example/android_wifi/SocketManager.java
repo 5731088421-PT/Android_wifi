@@ -1,11 +1,11 @@
-package com.example.android_wifi;
 /*
  * Created by NOT on 3/5/18.
  */
 
+package com.example.android_wifi;
+
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -16,16 +16,16 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
-
-public class SocketManager {
+class SocketManager {
 
     private static final String HOTSPOT_ADDR = "192.168.45.1";
-    private static final int SOCKET_PORT = 8080;
+    private static final int SOCKET_PORT = 8081;
 
     private UDPServer server;
     private UDPClient client;
+    private OnDataReceiveListener mOnDataReceiveListener;
 
-    public SocketManager(){
+    SocketManager(){
         server = new UDPServer();
         client = new UDPClient();
     }
@@ -42,13 +42,26 @@ public class SocketManager {
         client.send(beacon, HOTSPOT_ADDR, SOCKET_PORT);
     }
 
+    //todo
+    void sendObject(Object object, InetAddress address){
+        if(address != null){
+            client.send(object,address.getHostName(),SOCKET_PORT);
+        } else {
+            client.send(object,HOTSPOT_ADDR,SOCKET_PORT);
+        }
+    }
+
+    void setListener(OnDataReceiveListener listener){
+        mOnDataReceiveListener = listener;
+    }
+
     class UDPServer{
 
         AsyncTask<Void,Void,Void> asyncTask;
         private boolean isActive = true;
 
         @SuppressLint("StaticFieldLeak")
-        public void startServer(){
+        void startServer(){
             isActive = true;
             asyncTask = new AsyncTask<Void, Void, Void>() {
 
@@ -66,7 +79,9 @@ public class SocketManager {
                             ByteArrayInputStream byteStream = new ByteArrayInputStream(recvBuf);
                             ObjectInputStream is = new ObjectInputStream(new BufferedInputStream(byteStream));
                             Object o = is.readObject();
-
+                            if(mOnDataReceiveListener != null){
+                                mOnDataReceiveListener.onDataReceive(o,packet.getAddress());
+                            }
                         }
                     }
                     catch (Exception e){
@@ -91,11 +106,9 @@ public class SocketManager {
     class UDPClient{
 
         AsyncTask<Void,Void,Void> asyncTask;
-        String message;
-        InetAddress address;
 
         @SuppressLint("StaticFieldLeak")
-        public void send(final Object o, final String hostName, final int desPort){
+        void send(final Object o, final String hostName, final int desPort){
             asyncTask = new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... voids) {

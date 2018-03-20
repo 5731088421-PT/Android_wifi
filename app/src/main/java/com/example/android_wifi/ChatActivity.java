@@ -1,6 +1,6 @@
 package com.example.android_wifi;
 
-import android.content.Context;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -14,22 +14,39 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-public class ChatActivity extends AppCompatActivity {
+interface onAddNewMessageListener{
+    void onAddNewMessage(ChatMessage message);
+}
 
-    private Context context;
-    private RecyclerView recyclerView;
+public class ChatActivity extends AppCompatActivity implements onAddNewMessageListener{
+
     private CustomAdapter customAdapter;
-    private DBManager dbHelper;
     private EditText editText;
-    private ImageButton sendButton;
     private LinearLayoutManager llm;
-    private ChatManager chatManager;
+    private ChatManager mChatManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-        context = getApplicationContext();
+
+        Intent intent = getIntent();
+        String username = intent.getExtras().getString("userName");
+        boolean isRescuer = intent.getExtras().getBoolean("userRole");
+        mChatManager = new ChatManager(username,isRescuer);
+        mChatManager.setOnAddNewMessageListener(this);
+
+        setupUI();
+        mChatManager.start();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mChatManager.stop();
+    }
+
+    private void setupUI(){
         editText = (EditText) findViewById(R.id.message_input);
         editText.setOnEditorActionListener(
                 new TextView.OnEditorActionListener() {
@@ -43,7 +60,8 @@ public class ChatActivity extends AppCompatActivity {
                     }
                 }
         );
-        sendButton = (ImageButton) findViewById(R.id.send_button);
+
+        ImageButton sendButton = (ImageButton) findViewById(R.id.send_button);
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -51,16 +69,15 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-        dbHelper = new DBManager();
-//        dbHelper.addMockData();
-
-        recyclerView = (RecyclerView) findViewById(R.id.messages);
-        customAdapter = new CustomAdapter(this, dbHelper.fetchChatMessageList());
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.messages);
+        customAdapter = new CustomAdapter(this, DBManager.getInstance().fetchChatMessageList());
 
         recyclerView.setAdapter(customAdapter);
         recyclerView.setHasFixedSize(true);
-        llm = new LinearLayoutManager(context);
+
+        llm = new LinearLayoutManager(this);
         llm.setAutoMeasureEnabled(false);
+
         recyclerView.setLayoutManager(llm);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
@@ -69,45 +86,19 @@ public class ChatActivity extends AppCompatActivity {
                 llm.scrollToPosition(customAdapter.getItemCount()-1);
             }
         });
-//        chatManager = new ChatManager(context, customAdapter);
-//
-//        if(ChatManager.MODE == ChatManager.MODE_SERVER){
-//            chatManager.startServer();
-//        }
-//        else if(ChatManager.MODE == ChatManager.MODE_CLIENT){
-//            chatManager.startClient();
-//        }
-
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-//        chatManager.stopClient();
-//        chatManager.stopServer();
-    }
-
-    public void sendMessage(){
+    void sendMessage(){
         editText.setError(null);
-        String username = editText.getText().toString().trim();
-        if (TextUtils.isEmpty(username)) {
+        String message = editText.getText().toString().trim();
+        if (TextUtils.isEmpty(message)) {
             // There was an error; don't attempt login and focus the first
             // form field with an error.
             editText.setError("Please enter message before send");
             editText.requestFocus();
             return;
         }
-        long time = System.currentTimeMillis();
-//        Timestamp tsTemp = new Timestamp(time);
-//        String ts =  tsTemp.toString();
-        String message = editText.getText().toString();
-//        ChatMessage chatMessage = new ChatMessage(ChatManager.USERNAME, message, time+"");
-//        if(ChatManager.MODE == ChatManager.MODE_CLIENT){
-//            JSONArray jsonObject = chatMessage.toJSON();
-//            new ChatManager.SocketServerTask().execute(jsonObject);
-//        }
-//        dbHelper.addMessage(chatMessage);
-//        customAdapter.addNewDataToRecycler(chatMessage);
+        mChatManager.sendMessage(message);
         scrollToBottom();
         editText.setText("");
     }
@@ -115,4 +106,11 @@ public class ChatActivity extends AppCompatActivity {
     public void scrollToBottom(){
         llm.scrollToPosition(customAdapter.getItemCount()-1);
     }
+
+    @Override
+    public void onAddNewMessage(ChatMessage message) {
+        customAdapter.addNewDataToRecycler(message);
+    }
+
+
 }

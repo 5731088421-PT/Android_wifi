@@ -89,17 +89,17 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
         @Override
         public void onClick(View v) {
             if (v.getId() == R.id.clientButton){
-                mApManager.clientMode();
+//                mApManager.clientMode();
             }
             else if(v.getId() == R.id.hotspotButton){
-                mApManager.hotspotMode();
+//                mApManager.hotspotMode();
             }
             else if(v.getId() == R.id.autoWifiButton){
-                if(mApManager.isAutoActive){
-                    mApManager.stopAutoSwitchWifi();
-                } else {
-                    mApManager.startAutoSwitchWifi();
-                }
+//                if(mApManager.isAutoActive){
+//                    mApManager.stopAutoSwitchWifi();
+//                } else {
+//                    mApManager.startAutoSwitchWifi();
+//                }
             }
             else if(v.getId() == R.id.startClientButton){
 //                Intent intent = new Intent(context, ClientActivity.class);
@@ -117,34 +117,34 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
 
             }
             else if(v.getId() == R.id.startListenBroadcastButton){
-                mBroadcastManager.listenBroadcast();
+//                mBroadcastManager.listenBroadcast();
             }
             else if(v.getId() == R.id.startSendBroadcastButton){
-                mBroadcastManager.sendBroadcast("Test Hello!".getBytes());
+//                mBroadcastManager.sendBroadcast("Test Hello!".getBytes());
             }
             else if(v.getId() == R.id.autoBroadcastButton){
-                if(mBroadcastManager.isAutoRun){
-                    mBroadcastManager.stopAutoBroadcast();
-                }
-                else{
-                    mBroadcastManager.startAutoBroadcast();
-                }
+//                if(mBroadcastManager.isAutoRun){
+//                    mBroadcastManager.stopAutoBroadcast();
+//                }
+//                else{
+//                    mBroadcastManager.startAutoBroadcast();
+//                }
             }
             else if(v.getId() == R.id.chatButton){
-                Intent intent = new Intent(context,ChatActivity.class);
+                Intent intent = new Intent(context,LoginActivity.class);
                 startActivity(intent);
             }
             else if(v.getId() == R.id.clearChatButton){
-                DBManager DBManager = new DBManager();
-                DBManager.clearDB();
+//                DBManager DBManager = new DBManager();
+//                DBManager.clearDB();
             }
             else if(v.getId() == R.id.startService){
-                Intent intent = new Intent(getApplicationContext(), BackgroundService.class);
-                startService(intent);
+//                Intent intent = new Intent(getApplicationContext(), BackgroundService.class);
+//                startService(intent);
             }
             else if(v.getId() == R.id.stopService){
-                Intent intent = new Intent(getApplicationContext(), BackgroundService.class);
-                stopService(intent);
+//                Intent intent = new Intent(getApplicationContext(), BackgroundService.class);
+//                stopService(intent);
             }
         }
     };

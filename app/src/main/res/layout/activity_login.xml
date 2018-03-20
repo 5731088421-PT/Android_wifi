@@ -11,12 +11,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginBottom="32dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="32dp"
         android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -26,17 +24,28 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
-            android:text="Enter username to join chat"
+            android:text="@string/enter_your_info"
+            android:textAlignment="textStart"
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/name"
             android:textAlignment="textStart"
             android:textColor="@color/colorPrimary"
-            android:textSize="24sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <EditText
             android:id="@+id/username_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Username"
+            android:layout_marginBottom="20dp"
+            android:hint="@string/example_john_appleseed"
             android:imeActionId="@+id/login"
             android:imeActionLabel="Join"
             android:imeOptions="actionUnspecified"
@@ -44,7 +53,42 @@
             android:maxLength="14"
             android:maxLines="1"
             android:singleLine="true"
+            android:textColor="@android:color/background_dark"
             tools:ignore="InvalidImeActionId" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:text="ROLE"
+            android:textAlignment="textStart"
+            android:textColor="@color/colorPrimary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <RadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/radio_victim"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:buttonTint="@color/chatBubbleBG"
+                android:checked="true"
+                android:text="@string/victim"
+                android:onClick="onRadioClick"/>
+
+            <RadioButton
+                android:id="@+id/radio_rescuer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:buttonTint="@color/chatBubbleBG"
+                android:text="@string/rescuer"
+                android:onClick="onRadioClick"/>
+        </RadioGroup>
 
         <Button
             android:id="@+id/sign_in_button"
@@ -53,8 +97,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:background="@color/colorPrimaryDark"
-            android:text="Join"
+            android:text="@string/join"
             android:textColor="@android:color/white"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
     </LinearLayout>

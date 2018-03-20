@@ -4,4 +4,10 @@
     <string name="discover">Discover</string>
     <string name="register">Register</string>
     <string name="send">Send</string>
+    <string name="victim">Victim</string>
+    <string name="rescuer">Rescuer</string>
+    <string name="join">Join</string>
+    <string name="enter_your_info">ENTER YOUR INFO</string>
+    <string name="name">NAME</string>
+    <string name="example_john_appleseed">Example: John Appleseed</string>
 </resources>

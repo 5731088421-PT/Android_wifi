@@ -6,22 +6,23 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.TextView;
-
-import java.net.Socket;
 
 public class LoginActivity extends AppCompatActivity {
 
     private EditText mUsernameView;
-
+    private boolean isRescuer = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
         mUsernameView = (EditText) findViewById(R.id.username_input);
         mUsernameView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -35,7 +36,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-
         Button signInButton = (Button) findViewById(R.id.sign_in_button);
         signInButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -45,8 +45,18 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    public void login(){
+    public void onRadioClick(View view){
+        boolean checked = ((RadioButton) view).isChecked();
+        switch (view.getId()){
+            case R.id.radio_rescuer:
+               isRescuer = checked;
+               return;
+            case  R.id.radio_victim:
+                isRescuer = !checked;
+        }
+    }
 
+    public void login(){
         mUsernameView.setError(null);
         String username = mUsernameView.getText().toString().trim();
         if (TextUtils.isEmpty(username)) {
@@ -57,9 +67,9 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-//        ChatManager.USERNAME = username;
-        Intent intent = new Intent(
-                this, ChatActivity.class);
+        Intent intent = new Intent(getApplication().getApplicationContext(),ChatActivity.class);
+        intent.putExtra("userName",username);
+        intent.putExtra("userRole",isRescuer);
         startActivity(intent);
         finish();
     }

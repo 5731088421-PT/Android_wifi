@@ -20,18 +20,24 @@ import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
-enum WIFI_AP_STATE {
-    WIFI_AP_STATE_DISABLING, WIFI_AP_STATE_DISABLED, WIFI_AP_STATE_ENABLING, WIFI_AP_STATE_ENABLED, WIFI_AP_STATE_FAILED;
-}
-
 enum WIFI_MODE{
     CLIENT, HOTSPOT
 }
 
+enum WIFI_AP_STATE {
+    WIFI_AP_STATE_DISABLING, WIFI_AP_STATE_DISABLED, WIFI_AP_STATE_ENABLING, WIFI_AP_STATE_ENABLED, WIFI_AP_STATE_FAILED;
+}
+
+
+//todo use for callback
+enum ADHOC_STATUS{
+    CONNECTED,HOTSPOT,CLIENT;
+}
+
 class ApManager {
 
-    final WifiManager wifiManager;
-    final WifiConfiguration wifiConfig;
+    private final WifiManager wifiManager;
+    final WifiConfiguration wifiConfig = new WifiConfiguration();
 
     Boolean isAutoActive = false;
     private WIFI_MODE currentMode;
@@ -42,12 +48,13 @@ class ApManager {
     ApManager() {
         context = AppApplication.getInstance().getContext();
         wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        wifiConfig = new WifiConfiguration();
         wifiConfig.SSID = "MANET";
         currentMode = Math.random() <= 0.5 ? WIFI_MODE.CLIENT : WIFI_MODE.HOTSPOT;
     }
 
-    void hotspotMode(){
+
+
+    private void hotspotMode(){
         if(isWifiApEnabled()){
             setWifiApEnabled(null, false);
         }
@@ -55,7 +62,7 @@ class ApManager {
         currentMode = WIFI_MODE.HOTSPOT;
     }
 
-    void clientMode(){
+    private void clientMode(){
         if(isWifiApEnabled()){
             setWifiApEnabled(null, false);
         }
@@ -130,7 +137,6 @@ class ApManager {
                 wifiManager.reconnect();
             }
         }
-
     }
 
     private int findConfiguredNetworkId(List<WifiConfiguration> wifiConfigurationList, WifiConfiguration config){
@@ -189,4 +195,7 @@ class ApManager {
         return getWifiApState() == WIFI_AP_STATE.WIFI_AP_STATE_ENABLED;
     }
 
+    WIFI_MODE getCurrentMode(){
+        return currentMode;
+    }
 }

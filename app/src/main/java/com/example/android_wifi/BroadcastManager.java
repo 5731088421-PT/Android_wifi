@@ -1,6 +1,6 @@
 /*
-  Created by NOT on 2/12/18.
- */
+*  Created by NOT on 2/12/18.
+*/
 
 package com.example.android_wifi;
 
@@ -8,12 +8,16 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.StrictMode;
 import android.util.Log;
-import android.widget.Toast;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -22,56 +26,58 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+//import java.util.Timer;
+//import java.util.TimerTask;
 
 import static android.content.ContentValues.TAG;
 
 class BroadcastManager {
 
-    Boolean isAutoRun = false;
+//    private boolean isAutoRun = false;
+    private boolean isServerActive = false;
 
     private final int BROADCAST_PORT = 1234;
-    private Timer timer = new Timer();
-    private Context context;
+//    private Timer timer = new Timer();
 
-    private AsyncTask<Void,Void,Void> sendTask;
+    private OnDataReceiveListener mOnDataReceiveListener;
 
     BroadcastManager() {
-        this.context = AppApplication.getInstance().getContext();
+    }
+
+    void setListener(OnDataReceiveListener listener){
+        mOnDataReceiveListener = listener;
     }
 
     // Send
-    void startAutoBroadcast() {
-        TimerTask doAsynchronousTask;
-        final Handler handler = new Handler();
-        doAsynchronousTask = new TimerTask() {
-            @Override
-            public void run() {
-                handler.post(new Runnable() {
-                    public void run() {
-                        sendBroadcast("Hello from wifiTimer!".getBytes());
-                    }
-                });
-            }
-        };
-        timer.schedule(doAsynchronousTask, 0,getBroadCastInterval());
-        isAutoRun = true;
-    }
-
-    void stopAutoBroadcast(){
-        timer.cancel();
-        isAutoRun = false;
-    }
-
-    private long getBroadCastInterval(){
-        return  1000;
-    }
+//    void startAutoBroadcast() {
+//        TimerTask doAsynchronousTask;
+//        final Handler handler = new Handler();
+//        doAsynchronousTask = new TimerTask() {
+//            @Override
+//            public void run() {
+//                handler.post(new Runnable() {
+//                    public void run() {
+//                        sendBroadcast("Hello from wifiTimer!".getBytes());
+//                    }
+//                });
+//            }
+//        };
+//        timer.schedule(doAsynchronousTask, 0,getBroadCastInterval());
+//        isAutoRun = true;
+//    }
+//
+//    void stopAutoBroadcast(){
+//        timer.cancel();
+//        isAutoRun = false;
+//    }
+//
+//    private long getBroadCastInterval(){
+//        return  1000;
+//    }
 
     @SuppressLint("StaticFieldLeak")
-    void sendBroadcast(final byte[]  data) {
-//        responseReceivedListener.onBroadcastStatusChanged("Broadcasting");
-        sendTask = new AsyncTask<Void, Void, Void>() {
+    void sendBroadcast(final Object object) {
+        AsyncTask<Void, Void, Void> sendTask = new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
                 // Hack Prevent crash (sending should be done using an async task)
@@ -82,9 +88,18 @@ class BroadcastManager {
                     DatagramSocket socket = new DatagramSocket();
                     socket.setBroadcast(true);
                     InetAddress broadcastAddr = getBroadcast(getIpAddress());
-                    if(broadcastAddr != null){
-                        DatagramPacket sendPacket = new DatagramPacket(data, data.length, broadcastAddr, BROADCAST_PORT);
-                        socket.send(sendPacket);
+                    if (broadcastAddr != null) {
+                        ByteArrayOutputStream byteStream = new ByteArrayOutputStream(5000);
+                        ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(byteStream));
+
+                        os.flush();
+                        os.writeObject(object);
+                        os.flush();
+
+                        byte[] sendBuf = byteStream.toByteArray();
+                        DatagramPacket packet = new DatagramPacket(sendBuf, sendBuf.length, broadcastAddr, BROADCAST_PORT);
+                        int byteCount = packet.getLength();
+                        socket.send(packet);
                         System.out.println(getClass().getName() + "Broadcast packet sent to: " + broadcastAddr.getHostAddress());
                     }
                 } catch (IOException e) {
@@ -93,7 +108,69 @@ class BroadcastManager {
                 return null;
             }
         };
+        sendTask.execute();
     }
+
+    // Listen
+
+    void listenBroadcast(){
+        isServerActive = true;
+        Thread mThread = new Thread(new BroadcastListenerThread());
+        mThread.start();
+    }
+
+    void stopListenBroadcast(){
+        isServerActive = false;
+    }
+
+    class BroadcastListenerThread implements Runnable {
+        @Override
+        public void run() {
+            try {
+                //Keep a socket open to listen to all the UDP traffic that is destined for this port
+                DatagramSocket socket = new DatagramSocket(BROADCAST_PORT, InetAddress.getByName("0.0.0.0"));
+                socket.setBroadcast(true);
+                while (isServerActive) {
+                    Log.i(TAG,"Ready to receive broadcast packets!");
+                    //Receive a packet
+                    byte[] recvBuf = new byte[5000];
+                    DatagramPacket packet = new DatagramPacket(recvBuf, recvBuf.length);
+                    socket.receive(packet);
+
+                    ByteArrayInputStream byteStream = new ByteArrayInputStream(recvBuf);
+                    ObjectInputStream is = new ObjectInputStream(new BufferedInputStream(byteStream));
+                    Object o = is.readObject();
+                    if(mOnDataReceiveListener != null){
+                        mOnDataReceiveListener.onDataReceive(o,packet.getAddress());
+                    }
+
+//              Check if from same device
+//                    String thisDeviceIp = getIpAddress().toString().substring(1,getIpAddress().toString().length());
+//                    if(!thisDeviceIp.equals(packet.getAddress().getHostAddress())){
+//                        final String text = packet.getAddress().getHostAddress();
+//
+//                        //Packet received
+//                        Handler handler = new Handler(Looper.getMainLooper());
+//                        handler.post(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                Toast.makeText(context,"Packet received from: " + text,Toast.LENGTH_LONG).show();
+//                            }
+//                        });
+//                    }
+//
+//                    Log.i(TAG, "Packet received from: " + packet.getAddress().getHostAddress());
+//                    String data = new String(packet.getData()).trim();
+////                    responseReceivedListener.onBroadcastStatusChanged("Receive " + data + " from " + packet.getAddress().getHostAddress());
+//                    Log.i(TAG, "Packet received; data: " + data);
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 
     private InetAddress getIpAddress() {
         InetAddress inetAddress = null;
@@ -132,8 +209,6 @@ class BroadcastManager {
             if(inetAddr != null){
                 temp = NetworkInterface.getByInetAddress(inetAddr);
 
-                //null lasttime
-
                 if(temp != null){
                     List<InterfaceAddress> addresses = temp.getInterfaceAddresses();
                     for (InterfaceAddress inetAddress: addresses)
@@ -150,55 +225,5 @@ class BroadcastManager {
 //            responseReceivedListener.onBroadcastStatusChanged("Get broadcast ip error");
         }
         return null;
-    }
-
-    // Listen
-    void listenBroadcast(){
-        Thread mThread = new Thread(new BroadcastListenerThread());
-        mThread.start();
-
-//        responseReceivedListener.onBroadcastStatusChanged("Listening");
-    }
-
-    class BroadcastListenerThread implements Runnable {
-        @Override
-        public void run() {
-            try {
-                //Keep a socket open to listen to all the UDP traffic that is destined for this port
-                DatagramSocket socket = new DatagramSocket(BROADCAST_PORT, InetAddress.getByName("0.0.0.0"));
-                socket.setBroadcast(true);
-                while (true) {
-                    Log.i(TAG,"Ready to receive broadcast packets!");
-
-                    //Receive a packet
-                    byte[] recvBuf = new byte[15000];
-                    DatagramPacket packet = new DatagramPacket(recvBuf, recvBuf.length);
-                    socket.receive(packet);
-
-                    String thisDeviceIp = getIpAddress().toString().substring(1,getIpAddress().toString().length());
-                    if(!thisDeviceIp.equals(packet.getAddress().getHostAddress())){
-                        final String text = packet.getAddress().getHostAddress();
-
-                        //Packet received
-                        Handler handler = new Handler(Looper.getMainLooper());
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(context,"Packet received from: " + text,Toast.LENGTH_LONG).show();
-                            }
-                        });
-                    }
-
-                    Log.i(TAG, "Packet received from: " + packet.getAddress().getHostAddress());
-                    String data = new String(packet.getData()).trim();
-//                    responseReceivedListener.onBroadcastStatusChanged("Receive " + data + " from " + packet.getAddress().getHostAddress());
-                    Log.i(TAG, "Packet received; data: " + data);
-                }
-
-            } catch (IOException ex) {
-                Log.i(TAG, "Oops" + ex.getMessage());
-//                responseReceivedListener.onBroadcastStatusChanged("Broadcast Listening Error!" + ex.getMessage());
-            }
-        }
     }
 }
