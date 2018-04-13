@@ -41,7 +41,9 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
         context = getApplicationContext();
+        mApManager = new ApManager();
         bindUI();
+        ApManager.showWritePermissionSettings(false);
     }
 
     @Override
@@ -88,64 +90,63 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
     private View.OnClickListener buttonListenner = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            if (v.getId() == R.id.clientButton){
-//                mApManager.clientMode();
-            }
-            else if(v.getId() == R.id.hotspotButton){
-//                mApManager.hotspotMode();
-            }
-            else if(v.getId() == R.id.autoWifiButton){
+        if (v.getId() == R.id.clientButton){
+            mApManager.turnClient();
+        }
+        else if(v.getId() == R.id.hotspotButton){
+            mApManager.turnHotspot();
+        }
+        else if(v.getId() == R.id.autoWifiButton){
 //                if(mApManager.isAutoActive){
 //                    mApManager.stopAutoSwitchWifi();
 //                } else {
 //                    mApManager.startAutoSwitchWifi();
 //                }
-            }
-            else if(v.getId() == R.id.startClientButton){
+        }
+        else if(v.getId() == R.id.startClientButton){
 //                Intent intent = new Intent(context, ClientActivity.class);
 //                startActivity(intent);
 //                ChatManager.MODE = ChatManager.MODE_CLIENT;
-                setSocketStatus("Client Selected");
-            }
-            else if(v.getId() == R.id.startServerButton) {
+            setSocketStatus("Client Selected");
+        }
+        else if(v.getId() == R.id.startServerButton) {
 //                Intent intent = new Intent(context, ServerActivity.class);
 //                startActivity(intent);
 //                ChatManager.MODE = ChatManager.MODE_SERVER;
-                setSocketStatus("Server Selected");
-            }
-            else if(v.getId() == R.id.autoSocketButton){
+            setSocketStatus("Server Selected");
+        }
+        else if(v.getId() == R.id.autoSocketButton){
 
-            }
-            else if(v.getId() == R.id.startListenBroadcastButton){
+        }
+        else if(v.getId() == R.id.startListenBroadcastButton){
 //                mBroadcastManager.listenBroadcast();
-            }
-            else if(v.getId() == R.id.startSendBroadcastButton){
+        }
+        else if(v.getId() == R.id.startSendBroadcastButton){
 //                mBroadcastManager.sendBroadcast("Test Hello!".getBytes());
-            }
-            else if(v.getId() == R.id.autoBroadcastButton){
+        }
+        else if(v.getId() == R.id.autoBroadcastButton){
 //                if(mBroadcastManager.isAutoRun){
 //                    mBroadcastManager.stopAutoBroadcast();
 //                }
 //                else{
 //                    mBroadcastManager.startAutoBroadcast();
 //                }
-            }
-            else if(v.getId() == R.id.chatButton){
-                Intent intent = new Intent(context,LoginActivity.class);
-                startActivity(intent);
-            }
-            else if(v.getId() == R.id.clearChatButton){
-//                DBManager DBManager = new DBManager();
-//                DBManager.clearDB();
-            }
-            else if(v.getId() == R.id.startService){
+        }
+        else if(v.getId() == R.id.chatButton){
+            Intent intent = new Intent(context,LoginActivity.class);
+            startActivity(intent);
+        }
+        else if(v.getId() == R.id.clearChatButton){
+            DBManager.getInstance().clearDB();
+        }
+        else if(v.getId() == R.id.startService){
 //                Intent intent = new Intent(getApplicationContext(), BackgroundService.class);
 //                startService(intent);
-            }
-            else if(v.getId() == R.id.stopService){
+        }
+        else if(v.getId() == R.id.stopService){
 //                Intent intent = new Intent(getApplicationContext(), BackgroundService.class);
 //                stopService(intent);
-            }
+        }
         }
     };
 

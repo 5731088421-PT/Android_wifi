@@ -40,13 +40,13 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
         ChatMessage message = mMessages.get(position);
         holder.messageTextView.setText(message.message);
 //        Timestamp ts = new Timestamp(Long.parseLong(message.timeStamp));
-        Date date = new Date(Long.parseLong(message.timeStamp));
-        SimpleDateFormat sdfTime = new SimpleDateFormat("h:mm a");
-        sdfTime.setTimeZone(TimeZone.getTimeZone("GMT+7"));
-        String time= sdfTime.format(date);
+//        Date date = new Date(Long.parseLong(message.timeStamp));
+//        SimpleDateFormat sdfTime = new SimpleDateFormat("h:mm a");
+//        sdfTime.setTimeZone(TimeZone.getTimeZone("GMT+7"));
+//        String time= sdfTime.format(date);
 
 
-        holder.userNameTextView.setText(message.username +" | " + time);
+        holder.userNameTextView.setText(message.username + " | " + message.timeStamp.toString());
 //        if(ChatManager.USERNAME.equals(message.username)){
 //            holder.layout.setGravity(Gravity.RIGHT);
 //            holder.userNameTextView.setVisibility(View.GONE);
@@ -66,7 +66,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
     void addNewDataToRecycler(ChatMessage message) {
         int i;
         for (i=0; i<mMessages.size(); i++) {
-            if(Long.parseLong(message.timeStamp) < Long.parseLong(mMessages.get(i).timeStamp)){
+            if(message.timeStamp.before(mMessages.get(i).timeStamp)){
                 break;
             }
         }

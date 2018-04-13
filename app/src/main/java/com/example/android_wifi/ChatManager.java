@@ -1,5 +1,7 @@
 package com.example.android_wifi;
 
+import android.os.Looper;
+
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 
@@ -7,6 +9,8 @@ import java.net.InetAddress;
 import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.util.List;
+import android.os.Handler;
+import android.widget.Toast;
 
 /*
  * Created by NOT on 3/13/18.
@@ -31,7 +35,7 @@ public class ChatManager implements OnDataReceiveListener, OnWifiStateChangedLis
     ChatManager(String username, boolean isRescuer) {
         this.username = username;
         this.isRescuer = isRescuer;
-        mAdHocManager = new AdHocManager();
+        mAdHocManager = new AdHocManager(isRescuer);
         mAdHocManager.setupListener(this);
         mAdHocManager.setOnWifiStateChangedListener(this);
         mBloomfilter = BloomFilter.create(Funnels.stringFunnel(Charset.defaultCharset()),1000,0.001);
@@ -57,30 +61,34 @@ public class ChatManager implements OnDataReceiveListener, OnWifiStateChangedLis
         mAdHocManager.stopAdhoc();
     }
 
+    void stopSwitchWifi(){
+        mAdHocManager.stopSwitchWifi();
+    }
+
+    void stopSwitchWifi2(){
+        mAdHocManager.stopSwitchWifi2();
+    }
+
     void sendMessage(String message){
         long time = System.currentTimeMillis();
-        Timestamp tsTemp = new Timestamp(time);
-        ChatMessage chatMessage = new ChatMessage(username, message, tsTemp.toString());
-        if(mAdHocManager.getCurrentMode() == WIFI_MODE.CLIENT){
-            mAdHocManager.sendMessageViaSocket(chatMessage,null);
-        } else {
-            mAdHocManager.sendMessageViaBroadcast(chatMessage);
-        }
+        Timestamp ts = new Timestamp(time);
+        ChatMessage chatMessage = new ChatMessage(username, message, ts);
+        mAdHocManager.sendViaBroadcast(chatMessage);
         DBManager.getInstance().addMessage(chatMessage);
-        mOnAddNewMessageListener.onAddNewMessage(chatMessage);
+        mOnAddNewMessageListener.onAddNewMessageToUi(chatMessage);
         mBloomfilter.put(chatMessage.toBloomfilterString());
     }
 
-    void sendBeacon(){
+    void sendBeacon(InetAddress address){
         BeaconData beacon = new BeaconData(isRescuer, mBloomfilter);
-        mAdHocManager.sendMessageViaSocket(beacon,null);
+        mAdHocManager.sendViaSocket(beacon,address);
     }
 
     private void checkBloomFilter(BloomFilter<String> filter, InetAddress address){
         List<ChatMessage> messages = DBManager.getInstance().fetchChatMessageList();
         for(ChatMessage chatMessage:messages){
-            if(filter.mightContain(chatMessage.toBloomfilterString())){
-                mAdHocManager.sendMessageViaSocket(chatMessage,address);
+            if(!filter.mightContain(chatMessage.toBloomfilterString())){
+                mAdHocManager.sendViaSocket(chatMessage,address);
             }
         }
     }
@@ -89,21 +97,47 @@ public class ChatManager implements OnDataReceiveListener, OnWifiStateChangedLis
     public void onDataReceive(Object data, InetAddress address) {
         if(data instanceof BeaconData){
            BeaconData beacon = (BeaconData)data;
+           showToast("Rec Beacon from " + address.getHostAddress());
            checkBloomFilter(beacon.getBloomfilter(), address);
            //todo Check bloomfilter then send back beacon and data
+           if(!address.getHostAddress().equals("192.168.43.1")){
+               sendBeacon(address);
+               showToast("Sendback Beacon to " + address.getHostAddress());
+           }
         }
         else if(data instanceof ChatMessage){
+            showToast("Rec Message from " + address.getHostAddress());
             ChatMessage chatMessage = (ChatMessage)data;
-            DBManager.getInstance().addMessage(chatMessage);
-            mOnAddNewMessageListener.onAddNewMessage(chatMessage);
-            mBloomfilter.put(chatMessage.toBloomfilterString());
+            if(!mBloomfilter.mightContain(chatMessage.toBloomfilterString())){
+                DBManager.getInstance().addMessage(chatMessage);
+                mOnAddNewMessageListener.onAddNewMessageToUi(chatMessage);
+                mBloomfilter.put(chatMessage.toBloomfilterString());
+                showToast("insert new message");
+                if(!address.getHostAddress().equals("192.168.43.1")){
+                    mAdHocManager.sendViaBroadcast(chatMessage);
+                }
+            } else {
+                showToast("message exist");
+            }
         }
+    }
+
+    void showToast(final String text){
+        Handler mainHandler = new Handler(Looper.getMainLooper());
+
+        Runnable myRunnable = new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(AppApplication.getInstance().getContext(),text,Toast.LENGTH_SHORT).show();
+            } // This is your code
+        };
+        mainHandler.post(myRunnable);
     }
 
     @Override
     public void onWifiStateChanged(ADHOC_STATUS state) {
         if(state == ADHOC_STATUS.CONNECTED) {
-            sendBeacon();
+            sendBeacon(null);
         }
     }
 }

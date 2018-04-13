@@ -1,6 +1,9 @@
 package com.example.android_wifi;
 
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.wifi.WifiManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -10,12 +13,13 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
 interface onAddNewMessageListener{
-    void onAddNewMessage(ChatMessage message);
+    void onAddNewMessageToUi(ChatMessage message);
 }
 
 public class ChatActivity extends AppCompatActivity implements onAddNewMessageListener{
@@ -24,6 +28,11 @@ public class ChatActivity extends AppCompatActivity implements onAddNewMessageLi
     private EditText editText;
     private LinearLayoutManager llm;
     private ChatManager mChatManager;
+
+    //debug
+    private Button stopAutoButton;
+    private Button sendBloomButton;
+    private Button stopAuto2Button;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +95,26 @@ public class ChatActivity extends AppCompatActivity implements onAddNewMessageLi
                 llm.scrollToPosition(customAdapter.getItemCount()-1);
             }
         });
+        stopAutoButton = (Button)findViewById(R.id.saButton);
+        stopAutoButton.setOnClickListener(buttonListenner);
+        stopAuto2Button = (Button)findViewById(R.id.saButton2);
+        stopAuto2Button.setOnClickListener(buttonListenner);
+        sendBloomButton = (Button)findViewById(R.id.sbButton);
+        sendBloomButton.setOnClickListener(buttonListenner);
+
     }
+    private View.OnClickListener buttonListenner = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (v.getId() == R.id.saButton) {
+                mChatManager.stopSwitchWifi();
+            } else if (v.getId() == R.id.saButton2) {
+                mChatManager.stopSwitchWifi2();
+            } else {
+                mChatManager.sendBeacon(null);
+            }
+        }
+    };
 
     void sendMessage(){
         editText.setError(null);
@@ -108,7 +136,7 @@ public class ChatActivity extends AppCompatActivity implements onAddNewMessageLi
     }
 
     @Override
-    public void onAddNewMessage(ChatMessage message) {
+    public void onAddNewMessageToUi(ChatMessage message) {
         customAdapter.addNewDataToRecycler(message);
     }
 

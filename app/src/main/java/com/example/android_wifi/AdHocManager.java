@@ -7,8 +7,10 @@ package com.example.android_wifi;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
+import android.widget.Toast;
 
 import java.net.InetAddress;
 
@@ -18,12 +20,13 @@ class AdHocManager {
     private ApManager mAPManager;
     private BroadcastManager mBroadcastManager;
     private SocketManager mSocketManager;
+    private boolean isRescuer;
 
     BroadcastReceiver wifiReceiver;
     BroadcastReceiver apReceiver;
     BroadcastReceiver connectivityReceiver;
 
-    AdHocManager(){
+    AdHocManager(boolean isRescuer){
         mAPManager = new ApManager();
         initWifiStateReceiver();
 
@@ -41,7 +44,8 @@ class AdHocManager {
     }
 
     void startAdHoc(){
-        mAPManager.startAutoSwitchWifi();
+//        mAPManager.startAutoSwitchWifi();
+        /// todo
         mBroadcastManager.listenBroadcast();
         mSocketManager.startServer();
     }
@@ -52,13 +56,23 @@ class AdHocManager {
         mSocketManager.stopServer();
     }
 
+    void stopSwitchWifi(){
+        mAPManager.stopAutoSwitchWifi();
+        mAPManager.turnClient();
+    }
+
+    void stopSwitchWifi2(){
+        mAPManager.stopAutoSwitchWifi();
+        mAPManager.turnHotspot();
+    }
+
     //todo
-    void sendMessageViaSocket(Object object, InetAddress address){
+    void sendViaSocket(Object object, InetAddress address){
         mSocketManager.sendObject(object, address);
     }
 
     //todo
-    void sendMessageViaBroadcast(ChatMessage message){
+    void sendViaBroadcast(ChatMessage message){
         mBroadcastManager.sendBroadcast(message);
     }
 
@@ -70,38 +84,38 @@ class AdHocManager {
         wifiReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-            switch (intent.getExtras().getInt(WifiManager.EXTRA_WIFI_STATE)){
-                case WifiManager.WIFI_STATE_ENABLING:
-//                        responseReceivedListener.onWifiStatusChanged("Wifi Enabling...");
-                    return;
-                case WifiManager.WIFI_STATE_ENABLED:
-                    mAPManager.connectToAp(mAPManager.wifiConfig);
-//                        responseReceivedListener.onWifiStatusChanged("Wifi Enabled");
-                    return;
-                case WifiManager.WIFI_STATE_DISABLING:
-//                        responseReceivedListener.onWifiStatusChanged("Wifi Disabling...");
-                    return;
-                case WifiManager.WIFI_STATE_DISABLED:
-//                        responseReceivedListener.onWifiStatusChanged("Wifi Disabled");
-                    return;
-            }
+                switch (intent.getExtras().getInt(WifiManager.EXTRA_WIFI_STATE)){
+                    case WifiManager.WIFI_STATE_ENABLING:
+    //                        responseReceivedListener.onWifiStatusChanged("Wifi Enabling...");
+                        return;
+                    case WifiManager.WIFI_STATE_ENABLED:
+                        mAPManager.connectToAp(mAPManager.wifiConfig);
+    //                        responseReceivedListener.onWifiStatusChanged("Wifi Enabled");
+                        return;
+                    case WifiManager.WIFI_STATE_DISABLING:
+    //                        responseReceivedListener.onWifiStatusChanged("Wifi Disabling...");
+                        return;
+                    case WifiManager.WIFI_STATE_DISABLED:
+    //                        responseReceivedListener.onWifiStatusChanged("Wifi Disabled");
+                        return;
+                }
             }
         };
 
-    apReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            switch (intent.getExtras().getInt("wifi_state")){
-                case 11:
-//                        responseReceivedListener.onWifiStatusChanged("Hotspot Disabled");
-                    return;
-                case 13:
-//                        responseReceivedListener.onWifiStatusChanged("Hotspot Enabled");
-                    return;
-                case 14:
-//                        responseReceivedListener.onWifiStatusChanged("Hotspot Failed");
-                    return;
-            }
+        apReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                switch (intent.getExtras().getInt("wifi_state")){
+                    case 11:
+    //                        responseReceivedListener.onWifiStatusChanged("Hotspot Disabled");
+                        return;
+                    case 13:
+    //                        responseReceivedListener.onWifiStatusChanged("Hotspot Enabled");
+                        return;
+                    case 14:
+    //                        responseReceivedListener.onWifiStatusChanged("Hotspot Failed");
+                        return;
+                }
             }
         };
 
@@ -113,9 +127,13 @@ class AdHocManager {
     //                    responseReceivedListener.onWifiStatusChanged("Connecting...");
                 } else {
     //                    responseReceivedListener.onWifiStatusChanged("Connected");
-                    mOnWifiStateChangedListener.onWifiStateChanged(ADHOC_STATUS.CLIENT);
+                    mOnWifiStateChangedListener.onWifiStateChanged(ADHOC_STATUS.CONNECTED);
                 }
             }
         };
+
+        AppApplication.getInstance().getContext().registerReceiver(wifiReceiver, new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
+        AppApplication.getInstance().getContext().registerReceiver(connectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        AppApplication.getInstance().getContext().registerReceiver(apReceiver, new IntentFilter("android.net.wifi.WIFI_AP_STATE_CHANGED"));
     }
 }

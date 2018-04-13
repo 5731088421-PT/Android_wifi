@@ -6,6 +6,10 @@ package com.example.android_wifi;
 
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.Toast;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -18,7 +22,7 @@ import java.net.InetAddress;
 
 class SocketManager {
 
-    private static final String HOTSPOT_ADDR = "192.168.45.1";
+    private static final String HOTSPOT_ADDR = "192.168.43.1";
     private static final int SOCKET_PORT = 8081;
 
     private UDPServer server;
@@ -45,7 +49,7 @@ class SocketManager {
     //todo
     void sendObject(Object object, InetAddress address){
         if(address != null){
-            client.send(object,address.getHostName(),SOCKET_PORT);
+            client.send(object,address.getHostAddress(),SOCKET_PORT);
         } else {
             client.send(object,HOTSPOT_ADDR,SOCKET_PORT);
         }
@@ -75,6 +79,7 @@ class SocketManager {
                         socket = new DatagramSocket(SOCKET_PORT);
                         while (isActive){
                             socket.receive(packet);
+//                            Toast.makeText(AppApplication.getInstance().getContext(),"Rec packet",Toast.LENGTH_SHORT).show();
                             int byteCount = packet.getLength();
                             ByteArrayInputStream byteStream = new ByteArrayInputStream(recvBuf);
                             ObjectInputStream is = new ObjectInputStream(new BufferedInputStream(byteStream));
@@ -126,7 +131,7 @@ class SocketManager {
 
                         byte[] sendBuf = byteStream.toByteArray();
                         DatagramPacket packet = new DatagramPacket(sendBuf, sendBuf.length, address, desPort);
-                        int byteCount = packet.getLength();
+//                        int byteCount = packet.getLength();
                         socket.send(packet);
                     }
                     catch (Exception e){
@@ -142,5 +147,17 @@ class SocketManager {
             };
             asyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
+    }
+
+    void showToast(final String text){
+        Handler mainHandler = new Handler(Looper.getMainLooper());
+
+        Runnable myRunnable = new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(AppApplication.getInstance().getContext(),text,Toast.LENGTH_SHORT).show();
+            } // This is your code
+        };
+        mainHandler.post(myRunnable);
     }
 }

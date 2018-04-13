@@ -26,7 +26,7 @@ public class BackgroundService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        adHocManager = new AdHocManager();
+        adHocManager = new AdHocManager(true);
     }
 
     @Override

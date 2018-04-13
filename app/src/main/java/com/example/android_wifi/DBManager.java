@@ -11,10 +11,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import org.json.JSONArray;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-
-
 
 public class DBManager extends SQLiteOpenHelper {
 
@@ -55,7 +54,7 @@ public class DBManager extends SQLiteOpenHelper {
 
         SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
         Cursor cursor = sqLiteDatabase.query
-                (TABLE_NAME, null,  COL_SENDTIME+" =?", new String[]{message.timeStamp}, null, null, null);
+                (TABLE_NAME, null,  COL_SENDTIME+" =?", new String[]{message.timeStamp.toString()}, null, null, null);
 
         if (cursor != null) {
             cursor.moveToFirst();
@@ -87,7 +86,7 @@ public class DBManager extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(COL_USERNAME, chatMessage.username);
         values.put(COL_MESSAGE, chatMessage.message);
-        values.put(COL_SENDTIME, chatMessage.timeStamp);
+        values.put(COL_SENDTIME, chatMessage.timeStamp.toString());
 
         sqLiteDatabase.insert(TABLE_NAME, null, values);
         sqLiteDatabase.close();
@@ -98,20 +97,6 @@ public class DBManager extends SQLiteOpenHelper {
         SQLiteDatabase sqLiteDatabase = getWritableDatabase();
         sqLiteDatabase.delete(TABLE_NAME,null,null);
         sqLiteDatabase.close();
-    }
-
-    public void addMockData(){
-
-        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
-        sqLiteDatabase.delete(TABLE_NAME,null,null);
-        sqLiteDatabase.close();
-        ChatMessage chatMessage = new ChatMessage("NOT","Hello1","1");
-        ChatMessage chatMessage1 = new ChatMessage("NOT","Hello2","2");
-        ChatMessage chatMessage2 = new ChatMessage("NOT1","Hello3","3");
-
-        addMessage(chatMessage);
-        addMessage(chatMessage1);
-        addMessage(chatMessage2);
     }
 
     List<ChatMessage> fetchChatMessageList(){
@@ -130,7 +115,7 @@ public class DBManager extends SQLiteOpenHelper {
             ChatMessage chatMessage = new ChatMessage(
                     cursor.getString(1),
                     cursor.getString(2),
-                    cursor.getString(3));
+                    Timestamp.valueOf(cursor.getString(3)));
             messages.add(chatMessage);
             cursor.moveToNext();
         }
@@ -152,7 +137,7 @@ public class DBManager extends SQLiteOpenHelper {
             ChatMessage chatMessage = new ChatMessage(
                     cursor.getString(1),
                     cursor.getString(2),
-                    cursor.getString(3));
+                    Timestamp.valueOf(cursor.getString(3)));
             array.put(chatMessage.toJSON());
             cursor.moveToNext();
         }

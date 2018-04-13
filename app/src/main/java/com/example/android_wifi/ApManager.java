@@ -52,7 +52,13 @@ class ApManager {
         currentMode = Math.random() <= 0.5 ? WIFI_MODE.CLIENT : WIFI_MODE.HOTSPOT;
     }
 
+    void turnHotspot(){
+        hotspotMode();
+    }
 
+    void turnClient(){
+        clientMode();
+    }
 
     private void hotspotMode(){
         if(isWifiApEnabled()){
@@ -150,13 +156,13 @@ class ApManager {
         return -1;
     }
 
-    void showWritePermissionSettings(boolean force) {
+    static void showWritePermissionSettings(boolean force) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (force || !Settings.System.canWrite(this.context)) {
+            if (force || !Settings.System.canWrite(AppApplication.getInstance().getContext())) {
                 Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
-                intent.setData(Uri.parse("package:" + this.context.getPackageName()));
+                intent.setData(Uri.parse("package:" + AppApplication.getInstance().getContext().getPackageName()));
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                this.context.startActivity(intent);
+                AppApplication.getInstance().getContext().startActivity(intent);
             }
         }
     }
