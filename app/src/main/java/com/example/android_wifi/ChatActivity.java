@@ -1,9 +1,7 @@
 package com.example.android_wifi;
 
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
-import android.net.wifi.WifiManager;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -29,6 +27,8 @@ public class ChatActivity extends AppCompatActivity implements onAddNewMessageLi
     private LinearLayoutManager llm;
     private ChatManager mChatManager;
 
+
+
     //debug
     private Button stopAutoButton;
     private Button sendBloomButton;
@@ -44,6 +44,8 @@ public class ChatActivity extends AppCompatActivity implements onAddNewMessageLi
         boolean isRescuer = intent.getExtras().getBoolean("userRole");
         mChatManager = new ChatManager(username,isRescuer);
         mChatManager.setOnAddNewMessageListener(this);
+
+
 
         setupUI();
         mChatManager.start();
@@ -122,7 +124,7 @@ public class ChatActivity extends AppCompatActivity implements onAddNewMessageLi
         if (TextUtils.isEmpty(message)) {
             // There was an error; don't attempt login and focus the first
             // form field with an error.
-            editText.setError("Please enter message before send");
+            editText.setError("Please enter message!");
             editText.requestFocus();
             return;
         }
@@ -139,6 +141,5 @@ public class ChatActivity extends AppCompatActivity implements onAddNewMessageLi
     public void onAddNewMessageToUi(ChatMessage message) {
         customAdapter.addNewDataToRecycler(message);
     }
-
 
 }

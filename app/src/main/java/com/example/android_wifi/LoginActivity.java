@@ -1,6 +1,7 @@
 package com.example.android_wifi;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -17,6 +18,9 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText mUsernameView;
     private boolean isRescuer = false;
+
+    private SharedPreferences mSharePreferences;
+    private SharedPreferences.Editor mSharePreferenceEditor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +39,14 @@ public class LoginActivity extends AppCompatActivity {
                 return false;
             }
         });
+//        mUsernameView.setCursorVisible(false);
+
+        mSharePreferences = getSharedPreferences("USER_DATA", MODE_PRIVATE);
+        String username = mSharePreferences.getString("USER-NAME","");
+        if(!username.equals("")){
+            mUsernameView.setText(username);
+        }
+        mSharePreferenceEditor = mSharePreferences.edit();
 
         Button signInButton = (Button) findViewById(R.id.sign_in_button);
         signInButton.setOnClickListener(new View.OnClickListener() {
@@ -66,6 +78,10 @@ public class LoginActivity extends AppCompatActivity {
             mUsernameView.requestFocus();
             return;
         }
+
+        mSharePreferenceEditor.putString("USER-NAME",username);
+        mSharePreferenceEditor.putBoolean("USER-ROLE",isRescuer);
+        mSharePreferenceEditor.commit();
 
         Intent intent = new Intent(getApplication().getApplicationContext(),ChatActivity.class);
         intent.putExtra("userName",username);

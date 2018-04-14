@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
-import android.widget.Toast;
 
 import java.net.InetAddress;
 
@@ -46,13 +45,13 @@ class AdHocManager {
     void startAdHoc(){
 //        mAPManager.startAutoSwitchWifi();
         /// todo
-        mBroadcastManager.listenBroadcast();
+        mBroadcastManager.startServer();
         mSocketManager.startServer();
     }
 
     void stopAdhoc(){
         mAPManager.stopAutoSwitchWifi();
-        mBroadcastManager.stopListenBroadcast();
+        mBroadcastManager.stopServer();
         mSocketManager.stopServer();
     }
 
@@ -73,7 +72,7 @@ class AdHocManager {
 
     //todo
     void sendViaBroadcast(ChatMessage message){
-        mBroadcastManager.sendBroadcast(message);
+        mBroadcastManager.sendObject(message);
     }
 
     WIFI_MODE getCurrentMode(){

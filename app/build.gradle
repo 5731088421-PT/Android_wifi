@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 26
     buildToolsVersion '26.0.2'
     defaultConfig {
         applicationId "com.example.android_wifi"
@@ -29,6 +29,8 @@ dependencies {
     compile 'com.android.support:appcompat-v7:26.+'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
-    compile 'com.android.support:recyclerview-v7:25.0.+'
+    compile 'com.android.support:design:26.1.0'
+//    compile 'com.android.support:recyclerview-v7:25.4.0'
     compile group: 'com.google.guava', name: 'guava', version: '20.0'
+    compile 'com.github.stfalcon:chatkit:0.2.2'
 }

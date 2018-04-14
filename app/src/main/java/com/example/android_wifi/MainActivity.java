@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceivedL
 
         }
         else if(v.getId() == R.id.startListenBroadcastButton){
-//                mBroadcastManager.listenBroadcast();
+//                mBroadcastManager.startServer();
         }
         else if(v.getId() == R.id.startSendBroadcastButton){
 //                mBroadcastManager.sendBroadcast("Test Hello!".getBytes());

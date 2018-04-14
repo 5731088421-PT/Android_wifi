@@ -19,11 +19,13 @@ import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 class SocketManager {
 
     private static final String HOTSPOT_ADDR = "192.168.43.1";
-    private static final int SOCKET_PORT = 8081;
+    private static final int SOCKET_PORT = 8098;
 
     private UDPServer server;
     private UDPClient client;
@@ -42,11 +44,6 @@ class SocketManager {
         server.stopServer();
     }
 
-    void sendBeaconToHotspot(BeaconData beacon){
-        client.send(beacon, HOTSPOT_ADDR, SOCKET_PORT);
-    }
-
-    //todo
     void sendObject(Object object, InetAddress address){
         if(address != null){
             client.send(object,address.getHostAddress(),SOCKET_PORT);
@@ -62,7 +59,7 @@ class SocketManager {
     class UDPServer{
 
         AsyncTask<Void,Void,Void> asyncTask;
-        private boolean isActive = true;
+        private boolean isActive;
 
         @SuppressLint("StaticFieldLeak")
         void startServer(){
@@ -74,13 +71,12 @@ class SocketManager {
                     byte[] recvBuf = new byte[5000];
                     DatagramPacket packet = new DatagramPacket(recvBuf, recvBuf.length);
                     DatagramSocket socket = null;
-
                     try{
-                        socket = new DatagramSocket(SOCKET_PORT);
+                        socket = new DatagramSocket(null); // <-- create an unbound socket first
+                        socket.setReuseAddress(true);
+                        socket.bind(new InetSocketAddress(SOCKET_PORT)); // <-- now bind it
                         while (isActive){
                             socket.receive(packet);
-//                            Toast.makeText(AppApplication.getInstance().getContext(),"Rec packet",Toast.LENGTH_SHORT).show();
-                            int byteCount = packet.getLength();
                             ByteArrayInputStream byteStream = new ByteArrayInputStream(recvBuf);
                             ObjectInputStream is = new ObjectInputStream(new BufferedInputStream(byteStream));
                             Object o = is.readObject();

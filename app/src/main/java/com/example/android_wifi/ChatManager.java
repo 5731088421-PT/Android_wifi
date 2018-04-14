@@ -73,10 +73,10 @@ public class ChatManager implements OnDataReceiveListener, OnWifiStateChangedLis
         long time = System.currentTimeMillis();
         Timestamp ts = new Timestamp(time);
         ChatMessage chatMessage = new ChatMessage(username, message, ts);
+        mBloomfilter.put(chatMessage.toBloomfilterString());
         mAdHocManager.sendViaBroadcast(chatMessage);
         DBManager.getInstance().addMessage(chatMessage);
         mOnAddNewMessageListener.onAddNewMessageToUi(chatMessage);
-        mBloomfilter.put(chatMessage.toBloomfilterString());
     }
 
     void sendBeacon(InetAddress address){
@@ -122,7 +122,7 @@ public class ChatManager implements OnDataReceiveListener, OnWifiStateChangedLis
         }
     }
 
-    void showToast(final String text){
+    private void showToast(final String text){
         Handler mainHandler = new Handler(Looper.getMainLooper());
 
         Runnable myRunnable = new Runnable() {

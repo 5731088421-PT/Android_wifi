@@ -66,6 +66,7 @@ public class DBManager extends SQLiteOpenHelper {
 
             if (cUsername.equals(message.username)
                     && cMessage.equals(message.message)){
+                sqLiteDatabase.close();
                 return true;
             }
             cursor.moveToNext();
@@ -82,7 +83,6 @@ public class DBManager extends SQLiteOpenHelper {
         }
 
         SQLiteDatabase sqLiteDatabase = getWritableDatabase();
-
         ContentValues values = new ContentValues();
         values.put(COL_USERNAME, chatMessage.username);
         values.put(COL_MESSAGE, chatMessage.message);
